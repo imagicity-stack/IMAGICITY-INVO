@@ -5,8 +5,12 @@ import { Document } from "@/lib/types";
 import puppeteer from "puppeteer";
 import { computeFinancialYear } from "@/lib/utils/finance";
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
-  const docSnap = await adminDb.collection("documents").doc(params.id).get();
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const docSnap = await adminDb.collection("documents").doc(id).get();
   if (!docSnap.exists) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const doc = docSnap.data() as Document;
   const html = renderInvoiceHtml(doc);
@@ -19,17 +23,17 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
   const version = (doc.pdf?.version || 0) + 1;
   const fy = doc.financialYear || computeFinancialYear(new Date(doc.issueDate));
-  const path = `pdfs/${doc.type}/${fy}/${doc.number || doc.id}_v${version}.pdf`;
+  const path = `pdfs/${doc.type}/${fy}/${doc.number || docSnap.id}_v${version}.pdf`;
   const bucket = adminStorage.bucket();
   const file = bucket.file(path);
   await file.save(pdfBuffer, { contentType: "application/pdf" });
   const [url] = await file.getSignedUrl({ action: "read", expires: Date.now() + 1000 * 60 * 60 * 24 * 7 });
 
-  await adminDb.collection("documents").doc(params.id).update({
+  await adminDb.collection("documents").doc(id).update({
     pdf: { url, path, generatedAt: new Date().toISOString(), version },
   });
   await adminDb.collection("auditLogs").add({
-    documentId: params.id,
+    documentId: id,
     action: "PDF_GENERATE",
     createdAt: new Date().toISOString(),
   });
