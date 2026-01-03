@@ -1,3 +1,5 @@
+"use client";
+
 import { ReactNode } from "react";
 import { Protected } from "@/components/auth/Protected";
 import Link from "next/link";
