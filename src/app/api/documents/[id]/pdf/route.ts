@@ -21,6 +21,11 @@ export async function GET(
   const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
   await browser.close();
 
+  const pdfArrayBuffer =
+    pdfBuffer instanceof Uint8Array
+      ? pdfBuffer.buffer.slice(pdfBuffer.byteOffset, pdfBuffer.byteOffset + pdfBuffer.byteLength)
+      : pdfBuffer;
+
   const version = (doc.pdf?.version || 0) + 1;
   const fy = doc.financialYear || computeFinancialYear(new Date(doc.issueDate));
   const path = `pdfs/${doc.type}/${fy}/${doc.number || docSnap.id}_v${version}.pdf`;
@@ -38,7 +43,7 @@ export async function GET(
     createdAt: new Date().toISOString(),
   });
 
-  return new NextResponse(pdfBuffer, {
+  return new NextResponse(pdfArrayBuffer, {
     status: 200,
     headers: {
       "Content-Type": "application/pdf",
