@@ -1,7 +1,7 @@
 export type Role = "admin" | "staff" | "viewer";
 
 export interface UserProfile {
-  uid?: string;
+  uid: string;
   email: string;
   displayName?: string;
   role: Role;
