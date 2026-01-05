@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 const navItems = [
@@ -403,7 +404,18 @@ export default function ImvoApp() {
 
         {active === 'clients' && (
           <SectionWrapper>
-            <SectionHeader icon="/clients.svg" title="Clients" />
+            <SectionHeader
+              icon="/clients.svg"
+              title="Clients"
+              actions={
+                <Link
+                  href="/clients"
+                  className="rounded-lg bg-brandRed px-4 py-2 text-sm font-semibold text-white shadow hover:bg-red-700"
+                >
+                  Open Clients module
+                </Link>
+              }
+            />
             <div className="card space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-lg font-semibold">Client roster</p>
