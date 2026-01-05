@@ -32,6 +32,7 @@ FIREBASE_CLIENT_EMAIL=...
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"
 ```
 > Note: keep the `\\n` escapes in `FIREBASE_PRIVATE_KEY` for multi-line keys.
+> The app now renders a safety banner listing any missing env vars at runtime so deployments never fall through to a 404—add the keys in Vercel and redeploy to clear the banner.
 
 ## Firebase setup (step-by-step)
 1. **Create a Firebase project** named `imagicity-billing` (or any name) and enable **Email/Password** in **Authentication → Sign-in method**.
