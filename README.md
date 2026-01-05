@@ -43,3 +43,12 @@ The sidebar uses SVG icons stored in `public/` (`dashboard.svg`, `invoice.svg`, 
 - Tailwind powers the modern, creative layout while keeping the background white.
 - The UI includes local state for invoices, quotations, services, and clients so you can test interactions before hooking up Firebase.
 - The root route now renders through an optional catch-all in the Pages Router (`pages/[[...slug]].js`) so `/` and any unknown paths resolve to IMVO. A `/legacy` alias continues to render the same experience for existing links.
+
+## Clients Module
+- **Routes**: `/clients` (list + filters), `/clients/new` (create), `/clients/[id]` (detail), `/clients/[id]/edit` (update). The list page includes a primary “Add Client” button.
+- **Firestore**: collection name `clients`. Each document stores `clientId`, `clientType`, `legalName`, `brandName`, `contactPerson`, `email`, `phone`, `status`, `billingAddress` (`line1`, `line2?`, `city`, `state`, `country`, `pincode`, `stateCode`), `gstRegistered`, `gstin?`, `pan?`, `currency`, `paymentTerms`, `preferredPaymentMode`, `creditLimit?`, `taxPreference`, `accountOwner?`, `clientSource`, `industryType?`, `tags?`, `notes?`, `autoSendInvoice`, `autoReminderEnabled`, `reminderFrequencyDays?`, `lateFeeApplicable`, `isArchived`, `createdAt`, `updatedAt`.
+- **Archiving**: archive/restore never deletes documents. Archiving sets `isArchived=true` and marks status as `Inactive`. The list hides archived clients by default unless the toggle is enabled.
+- **Usage**: the client form validates required fields (legal name, contact person, email, phone, billing address, GSTIN when registered) and disables submission while saving. Detail pages expose quick actions to edit or archive/restore.
+- **Local dev**: reuse the existing Firebase client at `lib/firebase.js`; no new environment variables are required. Ensure Firestore rules allow unauthenticated reads/writes for development if auth is disabled.
+- **Indexes**: current queries use equality filters only; no additional Firestore composite indexes are required.
+- **Troubleshooting**: if saving fails locally, confirm Firestore is enabled for the configured project and that the Firestore rules permit the operations without authentication.
