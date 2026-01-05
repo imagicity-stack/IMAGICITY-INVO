@@ -118,7 +118,9 @@ export async function POST(req: NextRequest) {
   const pdf = await page.pdf({ format: "A4", printBackground: true });
   await browser.close();
 
-  return new NextResponse(pdf, {
+  const pdfBuffer = Buffer.from(pdf);
+
+  return new NextResponse(pdfBuffer, {
     status: 200,
     headers: {
       "Content-Type": "application/pdf",
