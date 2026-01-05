@@ -33,12 +33,22 @@ export default function EditClientPage({ params }: Props) {
     load();
   }, [params.id]);
 
-  if (loading) return <div className="card">Loading client…</div>;
-  if (error || !client) return <div className="card text-red-700">{error || 'Client not found'}</div>;
+  if (loading)
+    return (
+      <main className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-10">
+        <div className="card">Loading client…</div>
+      </main>
+    );
+  if (error || !client)
+    return (
+      <main className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-10">
+        <div className="card text-red-700">{error || 'Client not found'}</div>
+      </main>
+    );
 
   return (
-    <div className="space-y-6">
+    <main className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-10">
       <ClientForm mode="edit" initialClient={client} />
-    </div>
+    </main>
   );
 }

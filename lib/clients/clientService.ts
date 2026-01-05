@@ -1,12 +1,12 @@
 import {
   Timestamp,
-  addDoc,
   collection,
   doc,
   getDoc,
   getDocs,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
   where,
 } from 'firebase/firestore';
@@ -15,6 +15,19 @@ import { Client, ClientPayload } from './clientTypes';
 
 const collectionName = 'clients';
 const clientsCollection = collection(db, collectionName);
+
+const removeUndefined = (value: any): any => {
+  if (Array.isArray(value)) return value.map((entry) => removeUndefined(entry));
+  if (value && value.constructor === Object) {
+    const cleaned: Record<string, any> = {};
+    Object.entries(value).forEach(([key, val]) => {
+      if (val === undefined) return;
+      cleaned[key] = removeUndefined(val);
+    });
+    return cleaned;
+  }
+  return value;
+};
 
 const mapClient = (snapshot: any): Client => {
   const data = snapshot.data();
@@ -70,24 +83,26 @@ export const fetchClientById = async (id: string): Promise<Client | null> => {
 };
 
 export const createClient = async (payload: ClientPayload): Promise<string> => {
-  const docData = {
+  const docRef = doc(clientsCollection);
+  const clientId = payload.clientId?.trim() || docRef.id;
+  const docData = removeUndefined({
     ...payload,
-    clientId: payload.clientId || undefined,
+    clientId,
     isArchived: payload.isArchived ?? false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-  };
-  const docRef = await addDoc(clientsCollection, docData);
-  await updateDoc(docRef, { clientId: payload.clientId || docRef.id });
+  });
+  await setDoc(docRef, docData);
   return docRef.id;
 };
 
 export const updateClient = async (id: string, payload: Partial<ClientPayload>): Promise<void> => {
   const docRef = doc(clientsCollection, id);
-  await updateDoc(docRef, {
+  const cleanedPayload = removeUndefined({
     ...payload,
     updatedAt: serverTimestamp(),
   });
+  await updateDoc(docRef, cleanedPayload);
 };
 
 export const archiveClient = async (id: string): Promise<void> => {

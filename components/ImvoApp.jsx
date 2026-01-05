@@ -1,8 +1,12 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+
+import ClientDetail from './clients/ClientDetail';
+import ClientTable from './clients/ClientTable';
+import { archiveClient, fetchClients, restoreClient } from '../lib/clients/clientService';
 
 const navItems = [
   { key: 'dashboard', label: 'Dashboard', icon: '/dashboard.svg' },
@@ -12,28 +16,10 @@ const navItems = [
   { key: 'services', label: 'Services', icon: '/services.svg' },
 ];
 
-const seededClients = [
-  { name: 'Lumenix Studio', email: 'hello@lumenix.io', status: 'active', spend: 82450 },
-  { name: 'NovaHealth', email: 'ops@novahealth.com', status: 'active', spend: 54120 },
-  { name: 'UrbanHive', email: 'contact@urbanhive.co', status: 'pending', spend: 13200 },
-  { name: 'Brightside Retail', email: 'finance@brightside.shop', status: 'active', spend: 41200 },
-];
-
 const seededServices = [
   { title: 'Brand Identity Sprint', price: 2800, cycle: 'one-time', description: 'Logo suite, typography, color and launch kit.' },
   { title: 'Paid Media Retainer', price: 3600, cycle: 'monthly', description: 'Performance ads, landing CRO, weekly reporting.' },
   { title: 'Content + Social', price: 2400, cycle: 'monthly', description: 'Short-form video, copy, scheduling, and community.' },
-];
-
-const seededInvoices = [
-  { id: 'INV-1042', client: 'Lumenix Studio', amount: 5400, due: '2024-07-30', status: 'Pending' },
-  { id: 'INV-1043', client: 'NovaHealth', amount: 3600, due: '2024-07-14', status: 'Paid' },
-  { id: 'INV-1044', client: 'Brightside Retail', amount: 2800, due: '2024-08-08', status: 'Pending' },
-];
-
-const seededQuotations = [
-  { id: 'QTE-2058', client: 'UrbanHive', service: 'Content + Social', amount: 2400, status: 'Sent' },
-  { id: 'QTE-2059', client: 'Lumenix Studio', service: 'Brand Identity Sprint', amount: 2800, status: 'Draft' },
 ];
 
 function SectionHeader({ icon, title, actions }) {
@@ -75,13 +61,20 @@ function Pill({ children, tone = 'muted' }) {
 
 export default function ImvoApp() {
   const [active, setActive] = useState('dashboard');
-  const [clients] = useState(seededClients);
+  const [clients, setClients] = useState([]);
+  const [clientsLoading, setClientsLoading] = useState(false);
+  const [clientsError, setClientsError] = useState('');
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('');
+  const [includeArchived, setIncludeArchived] = useState(false);
+  const [search, setSearch] = useState('');
+
   const [services, setServices] = useState(seededServices);
-  const [invoices, setInvoices] = useState(seededInvoices);
-  const [quotations, setQuotations] = useState(seededQuotations);
+  const [invoices, setInvoices] = useState([]);
+  const [quotations, setQuotations] = useState([]);
 
   const [invoiceForm, setInvoiceForm] = useState({
-    client: seededClients[0].name,
+    client: '',
     service: seededServices[0].title,
     amount: 3600,
     due: '2024-08-15',
@@ -89,13 +82,101 @@ export default function ImvoApp() {
   });
 
   const [quoteForm, setQuoteForm] = useState({
-    client: seededClients[2].name,
+    client: '',
     service: seededServices[1].title,
     amount: 2400,
     status: 'Draft',
   });
 
   const [serviceForm, setServiceForm] = useState({ title: '', price: '', cycle: 'monthly', description: '' });
+
+  const router = useRouter();
+
+  const handleArchiveClient = async (client) => {
+    await archiveClient(client.id);
+    await loadClients();
+    setSelectedClient((prev) => (prev?.id === client.id ? { ...prev, isArchived: true } : prev));
+  };
+
+  const handleRestoreClient = async (client) => {
+    await restoreClient(client.id);
+    await loadClients();
+    setSelectedClient((prev) => (prev?.id === client.id ? { ...prev, isArchived: false } : prev));
+  };
+
+  const handleEditClient = (client) => {
+    router.push(`/clients/${client.id}/edit`);
+  };
+
+  const handleCreateClient = () => {
+    router.push('/clients/new');
+  };
+
+  const loadClients = async () => {
+    setClientsLoading(true);
+    setClientsError('');
+    try {
+      const data = await fetchClients({ status: statusFilter || undefined, includeArchived, search });
+      setClients(data);
+      if (data.length && !selectedClient) {
+        setSelectedClient(data[0]);
+      }
+      if (!data.length) {
+        setSelectedClient(null);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to load clients';
+      setClientsError(message);
+    } finally {
+      setClientsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadClients();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, includeArchived]);
+
+  useEffect(() => {
+    if (clients.length && !selectedClient) {
+      setSelectedClient(clients[0]);
+    }
+
+    if (clients.length && !invoiceForm.client) {
+      setInvoiceForm((prev) => ({ ...prev, client: clients[0].legalName }));
+    }
+
+    if (clients.length && !quoteForm.client) {
+      setQuoteForm((prev) => ({ ...prev, client: clients[0].legalName }));
+    }
+
+    if (clients.length && invoices.length === 0) {
+      const today = new Date();
+      const seededFromClients = clients.slice(0, 3).map((client, idx) => {
+        const dueDate = new Date(today);
+        dueDate.setDate(today.getDate() + (idx + 1) * 5);
+        return {
+          id: `INV-${1042 + idx}`,
+          client: client.legalName,
+          amount: 3200 + idx * 450,
+          due: dueDate.toISOString().slice(0, 10),
+          status: idx % 2 === 0 ? 'Pending' : 'Paid',
+        };
+      });
+      setInvoices(seededFromClients);
+    }
+
+    if (clients.length && quotations.length === 0) {
+      const seededQuotes = clients.slice(0, 2).map((client, idx) => ({
+        id: `QTE-${2058 + idx}`,
+        client: client.legalName,
+        service: seededServices[idx]?.title || seededServices[0].title,
+        amount: 2400 + idx * 200,
+        status: idx % 2 === 0 ? 'Sent' : 'Draft',
+      }));
+      setQuotations(seededQuotes);
+    }
+  }, [clients, invoiceForm.client, quoteForm.client, invoices.length, quotations.length, selectedClient]);
 
   const totals = useMemo(() => {
     const paid = invoices.filter((item) => item.status === 'Paid').reduce((sum, item) => sum + item.amount, 0);
@@ -105,12 +186,14 @@ export default function ImvoApp() {
 
   const handleInvoiceSubmit = (e) => {
     e.preventDefault();
+    if (!invoiceForm.client) return;
     const nextId = `INV-${1045 + invoices.length}`;
     setInvoices([{ ...invoiceForm, id: nextId }, ...invoices]);
   };
 
   const handleQuoteSubmit = (e) => {
     e.preventDefault();
+    if (!quoteForm.client) return;
     const nextId = `QTE-${2060 + quotations.length}`;
     setQuotations([{ ...quoteForm, id: nextId }, ...quotations]);
   };
@@ -231,11 +314,13 @@ export default function ImvoApp() {
                     Client
                     <select
                       className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+                      disabled={!clients.length}
                       value={invoiceForm.client}
                       onChange={(e) => setInvoiceForm({ ...invoiceForm, client: e.target.value })}
                     >
+                      {!clients.length && <option>No clients yet</option>}
                       {clients.map((client) => (
-                        <option key={client.name}>{client.name}</option>
+                        <option key={client.id || client.legalName}>{client.legalName}</option>
                       ))}
                     </select>
                   </label>
@@ -328,11 +413,13 @@ export default function ImvoApp() {
                     Client
                     <select
                       className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+                      disabled={!clients.length}
                       value={quoteForm.client}
                       onChange={(e) => setQuoteForm({ ...quoteForm, client: e.target.value })}
                     >
+                      {!clients.length && <option>No clients yet</option>}
                       {clients.map((client) => (
-                        <option key={client.name}>{client.name}</option>
+                        <option key={client.id || client.legalName}>{client.legalName}</option>
                       ))}
                     </select>
                   </label>
@@ -407,34 +494,109 @@ export default function ImvoApp() {
             <SectionHeader
               icon="/clients.svg"
               title="Clients"
-              actions={
-                <Link
-                  href="/clients"
-                  className="rounded-lg bg-brandRed px-4 py-2 text-sm font-semibold text-white shadow hover:bg-red-700"
-                >
-                  Open Clients module
-                </Link>
-              }
             />
             <div className="card space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-lg font-semibold">Client roster</p>
-                <Pill tone="muted">CRM-ready</Pill>
+              <div className="flex flex-wrap items-center gap-3 justify-between">
+                <div>
+                  <p className="text-lg font-semibold text-brandCharcoal">Live roster</p>
+                  <p className="text-sm text-gray-600">Search, filter, and act on clients without leaving the home surface.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={loadClients}
+                    className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    Refresh
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCreateClient}
+                    className="rounded-xl bg-brandRed px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brandRed/20 transition hover:-translate-y-0.5 hover:bg-red-700"
+                  >
+                    Add Client
+                  </button>
+                </div>
               </div>
-              <div className="grid gap-3 md:grid-cols-2">
-                {clients.map((client) => (
-                  <div key={client.name} className="flex flex-col gap-2 rounded-2xl border border-gray-100 bg-brandMuted p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-brandCharcoal">{client.name}</p>
-                      <Pill tone={client.status === 'active' ? 'green' : 'yellow'}>{client.status}</Pill>
-                    </div>
-                    <p className="text-sm text-gray-500">{client.email}</p>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Image src="/reminder.svg" alt="" width={16} height={16} />
-                      <span>${client.spend.toLocaleString()} lifetime</span>
-                    </div>
+
+              <div className="grid gap-3 md:grid-cols-[2fr_1fr_1fr]">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    loadClients();
+                  }}
+                  className="relative"
+                >
+                  <input
+                    type="search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search by legal name, brand, email, or phone"
+                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 pr-12 text-sm focus:border-brandRed focus:ring-2 focus:ring-brandRed/20"
+                  />
+                  <button
+                    type="submit"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-brandRed px-3 py-1 text-xs font-semibold text-white"
+                  >
+                    Go
+                  </button>
+                </form>
+
+                <label className="text-sm font-semibold text-gray-600">
+                  Status
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+                  >
+                    <option value="">All statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="On Hold">On Hold</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Blacklisted">Blacklisted</option>
+                  </select>
+                </label>
+
+                <label className="flex items-center justify-between gap-3 self-end rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700">
+                  Show archived
+                  <input
+                    type="checkbox"
+                    checked={includeArchived}
+                    onChange={(e) => setIncludeArchived(e.target.checked)}
+                    className="h-5 w-5 rounded border-gray-300 text-brandRed focus:ring-brandRed"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="grid gap-6 xl:grid-cols-[1.8fr_1fr]">
+              <div className="space-y-4">
+                {clientsError && (
+                  <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    {clientsError}
                   </div>
-                ))}
+                )}
+                <ClientTable
+                  clients={clients}
+                  loading={clientsLoading}
+                  onSelect={setSelectedClient}
+                  onEdit={handleEditClient}
+                  onArchive={handleArchiveClient}
+                  onRestore={handleRestoreClient}
+                />
+              </div>
+
+              <div className="space-y-4">
+                {selectedClient ? (
+                  <ClientDetail
+                    client={selectedClient}
+                    onEdit={() => handleEditClient(selectedClient)}
+                    onArchive={() => handleArchiveClient(selectedClient)}
+                    onRestore={() => handleRestoreClient(selectedClient)}
+                  />
+                ) : (
+                  <div className="card text-sm text-gray-600">Select a client to see details and quick actions.</div>
+                )}
               </div>
             </div>
           </SectionWrapper>

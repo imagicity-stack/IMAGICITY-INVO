@@ -62,7 +62,7 @@ export default function ClientsPage() {
   const totalCount = clients.length;
 
   return (
-    <div className="space-y-8">
+    <main className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6 lg:px-10">
       <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 text-white shadow-lg">
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_25%),radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.06),transparent_25%)]" />
         <div className="relative flex flex-wrap items-center justify-between gap-6">
@@ -157,6 +157,6 @@ export default function ClientsPage() {
           onRestore={handleRestore}
         />
       </div>
-    </div>
+    </main>
   );
 }

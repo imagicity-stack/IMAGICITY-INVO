@@ -53,21 +53,29 @@ export default function ClientDetailPage({ params }: Props) {
   };
 
   if (loading) {
-    return <div className="card">Loading client…</div>;
+    return (
+      <main className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-10">
+        <div className="card">Loading client…</div>
+      </main>
+    );
   }
 
   if (error || !client) {
-    return <div className="card text-red-700">{error || 'Client not found'}</div>;
+    return (
+      <main className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-10">
+        <div className="card text-red-700">{error || 'Client not found'}</div>
+      </main>
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <main className="mx-auto max-w-6xl space-y-6 px-4 py-10 sm:px-6 lg:px-10">
       <ClientDetail
         client={client}
         onEdit={() => router.push(`/clients/${client.id}/edit`)}
         onArchive={handleArchive}
         onRestore={handleRestore}
       />
-    </div>
+    </main>
   );
 }
