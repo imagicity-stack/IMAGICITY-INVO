@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IMVO | Imagicity Billing Workspace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div>
+        <p class="eyebrow">Imagicity</p>
+        <h1>IMVO</h1>
+      </div>
+    </div>
+    <div class="top-actions">
+      <div class="pill">Red • Yellow • Black</div>
+      <button class="primary ghost" id="print-dashboard">Export dashboard PDF</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">India-ready Billing Suite</p>
+        <h2>Invoices, quotations & GST compliance in minutes.</h2>
+        <p class="lede">
+          IMVO helps Imagicity issue compliant invoices and marketing proposals with built-in GST guidance,
+          responsive layouts, and production-ready PDF exports.
+        </p>
+        <div class="hero-actions">
+          <a href="#invoice" class="primary">Create invoice</a>
+          <a href="#quotation" class="secondary">Draft quotation</a>
+        </div>
+      </div>
+      <div class="hero-card">
+        <p class="eyebrow">Highlights</p>
+        <ul>
+          <li>GSTIN validation prompt & place-of-supply guidance</li>
+          <li>HSN/SAC capture for services and media buys</li>
+          <li>Split CGST/SGST vs IGST based on interstate toggle</li>
+          <li>One-click PDF exports for invoices, quotations, and dashboard</li>
+          <li>Firebase-ready data model for clients, invoices, and proposals</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="grid" id="quick-actions">
+      <article class="card stat">
+        <p class="eyebrow">GST checklist</p>
+        <ul class="checklist">
+          <li>Capture supplier & client GSTIN (state code first two digits).</li>
+          <li>Use place of supply to decide IGST (interstate) vs CGST/SGST (intrastate).</li>
+          <li>List HSN/SAC for every line item; marketing services often use SAC 99836/99837.</li>
+          <li>Show taxable value and tax split; round to 2 decimals.</li>
+          <li>Include invoice sequence, issue date, due date, and payment terms.</li>
+        </ul>
+      </article>
+      <article class="card stat">
+        <p class="eyebrow">Templates</p>
+        <div class="chips" id="templates"></div>
+      </article>
+      <article class="card stat">
+        <p class="eyebrow">Saved clients</p>
+        <div class="client-list" id="client-list"></div>
+      </article>
+    </section>
+
+    <section class="panel" id="invoice">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Invoice composer</p>
+          <h3>Issue tax invoices with confidence</h3>
+        </div>
+        <button class="primary" id="invoice-pdf">Download invoice PDF</button>
+      </div>
+      <form class="form" id="invoice-form">
+        <div class="form-grid">
+          <label>Invoice number<input name="invoiceNumber" required placeholder="IMV-2024-001" /></label>
+          <label>Issue date<input type="date" name="issueDate" required /></label>
+          <label>Due date<input type="date" name="dueDate" required /></label>
+          <label>Client name<input name="clientName" required placeholder="Acme Brands" /></label>
+          <label>Client GSTIN<input name="clientGstin" required placeholder="27ABCDE1234F1Z5" /></label>
+          <label>Place of supply<input name="placeOfSupply" required placeholder="Maharashtra" /></label>
+          <label>Is interstate supply?
+            <select name="interstate">
+              <option value="no">No (apply CGST + SGST)</option>
+              <option value="yes">Yes (apply IGST)</option>
+            </select>
+          </label>
+          <label>Notes<textarea name="notes" rows="2" placeholder="Payment within 15 days; late fee 2%." ></textarea></label>
+        </div>
+
+        <div class="items">
+          <div class="items-head">
+            <h4>Line items</h4>
+            <div class="inline">
+              <label>HSN/SAC <input id="item-hsn" placeholder="99836" /></label>
+              <label>Tax rate
+                <select id="item-tax">
+                  <option value="0">0%</option>
+                  <option value="5">5%</option>
+                  <option value="12">12%</option>
+                  <option value="18" selected>18%</option>
+                  <option value="28">28%</option>
+                </select>
+              </label>
+              <button type="button" class="secondary" id="add-invoice-item">Add item</button>
+            </div>
+          </div>
+          <div class="items-grid" id="invoice-items"></div>
+        </div>
+      </form>
+      <div class="preview" id="invoice-preview"></div>
+    </section>
+
+    <section class="panel" id="quotation">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Quotation builder</p>
+          <h3>Responsive proposals for campaigns and retainers</h3>
+        </div>
+        <button class="primary" id="quote-pdf">Download quotation PDF</button>
+      </div>
+      <form class="form" id="quotation-form">
+        <div class="form-grid">
+          <label>Quotation number<input name="quoteNumber" required placeholder="IMV-QTN-011" /></label>
+          <label>Valid until<input type="date" name="validUntil" required /></label>
+          <label>Client contact<input name="quoteClient" required placeholder="Marketing Head, Brand" /></label>
+          <label>Summary<textarea name="quoteSummary" rows="2" placeholder="SEO + performance marketing retainer" ></textarea></label>
+        </div>
+        <div class="items">
+          <div class="items-head">
+            <h4>Scope & deliverables</h4>
+            <div class="inline">
+              <label>HSN/SAC <input id="quote-hsn" placeholder="99837" /></label>
+              <label>Tax rate
+                <select id="quote-tax">
+                  <option value="0">0%</option>
+                  <option value="5">5%</option>
+                  <option value="12">12%</option>
+                  <option value="18" selected>18%</option>
+                  <option value="28">28%</option>
+                </select>
+              </label>
+              <button type="button" class="secondary" id="add-quote-item">Add deliverable</button>
+            </div>
+          </div>
+          <div class="items-grid" id="quote-items"></div>
+        </div>
+      </form>
+      <div class="preview" id="quote-preview"></div>
+    </section>
+
+    <section class="panel" id="compliance">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Compliance notes</p>
+          <h3>GST-ready defaults and invoice anatomy</h3>
+        </div>
+      </div>
+      <div class="compliance-grid">
+        <article class="card">
+          <h4>Required invoice fields</h4>
+          <ul>
+            <li>Unique invoice/quotation number</li>
+            <li>Date of issue and due date</li>
+            <li>Supplier GSTIN (Imagicity) and client GSTIN</li>
+            <li>Place of supply and whether interstate</li>
+            <li>HSN/SAC, quantity, rate, taxable value</li>
+            <li>Tax split: CGST & SGST (intrastate) or IGST (interstate)</li>
+            <li>Rounding and grand total with words</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h4>Typical marketing SAC codes</h4>
+          <p>Use SAC 99836 (Advertising) or 99837 (Marketing services). Media buying with markup can still fall under 99836.</p>
+          <p>Note: Reverse charge is generally <strong>not</strong> applicable for standard agency billing; mention if client is responsible.</p>
+        </article>
+        <article class="card">
+          <h4>Payment preferences</h4>
+          <p>Support UPI, IMPS/NEFT, and cheque. Include bank details and UPI ID within the notes field. Auto-reminders can be added via Firebase Cloud Functions.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>
+      <p class="eyebrow">Imagicity</p>
+      <strong>Marketing that scales. Billing that matches.</strong>
+    </div>
+    <p>Built for India with GST best practices, secure client storage, and pixel-perfect PDFs.</p>
+  </footer>
+</body>
+</html>
