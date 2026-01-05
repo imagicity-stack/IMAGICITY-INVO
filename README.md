@@ -31,7 +31,7 @@ Use the environment variables already configured in Vercel for Firebase. These s
    - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
    - `NEXT_PUBLIC_FIREBASE_APP_ID`
    - `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` (optional if Analytics is used)
-4. **Initialize Firebase in the front-end**: create a client helper (e.g., `lib/firebase.js`) that uses `initializeApp` from `firebase/app` and exports Firestore helpers with the env vars above. Import that helper inside the form submit handlers in `app/page.js` to persist invoices, quotations, services, and analytics snapshots.
+4. **Initialize Firebase in the front-end**: create a client helper (e.g., `lib/firebase.js`) that uses `initializeApp` from `firebase/app` and exports Firestore helpers with the env vars above. Import that helper inside the form submit handlers in `components/ImvoApp.jsx` (rendered from `pages/index.js`) to persist invoices, quotations, services, and analytics snapshots.
 5. **Persist forms**: wire the Invoice, Quotation, and Service form submit handlers to `addDoc(collection(db, 'invoices'), data)` and similar collections using the helper.
 6. **Deploy** on Vercel. Ensure the environment variables are populated in the project settings. No static export is needed.
 7. **Security rules**: configure Firestore rules to protect data, for example allowing read/write only for authenticated users. Enable Firebase Authentication (Email/Password or OAuth) if you need access control.
@@ -42,4 +42,4 @@ The sidebar uses SVG icons stored in `public/` (`dashboard.svg`, `invoice.svg`, 
 ## Notes
 - Tailwind powers the modern, creative layout while keeping the background white.
 - The UI includes local state for invoices, quotations, services, and clients so you can test interactions before hooking up Firebase.
-- The root route renders through the App Router (`app/page.js`). A Pages Router fallback lives at `/legacy` (`pages/legacy.js`) for hosts that disable the App Router.
+- The root route now renders through the Pages Router (`pages/index.js`) to avoid route conflicts and 404s. A `/legacy` alias continues to render the same experience for existing links.
