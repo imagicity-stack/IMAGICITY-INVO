@@ -115,9 +115,9 @@ export default function Home() {
         </section>
 
         <Card title="Operational guardrails">
-          <ul className="grid grid-cols-1 gap-2 md:grid-cols-3 text-sm text-gray-700">
+          <ul className="grid grid-cols-1 gap-2 text-sm text-gray-700 md:grid-cols-3">
             <li>✅ Firebase Email/Password login with Firestore role document (no hardcoded UID).</li>
-              <li>✅ Immutable finalize: finalized documents switch to open status and are actioned via status buttons only.</li>
+            <li>✅ Immutable finalize: finalized documents switch to open status and are actioned via status buttons only.</li>
             <li>✅ GST optionality toggled per document with explicit place-of-supply capture.</li>
             <li>✅ Storage-backed branding and attachment channel via Firebase Storage uploads.</li>
             <li>✅ Server-side PDF endpoint `/api/documents/[id]/pdf` for regulatory-grade exports.</li>
