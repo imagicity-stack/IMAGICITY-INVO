@@ -42,3 +42,4 @@ The sidebar uses SVG icons stored in `public/` (`dashboard.svg`, `invoice.svg`, 
 ## Notes
 - Tailwind powers the modern, creative layout while keeping the background white.
 - The UI includes local state for invoices, quotations, services, and clients so you can test interactions before hooking up Firebase.
+- The root route renders through the App Router (`app/page.js`) with a Pages Router fallback (`pages/index.js`) to avoid 404s on hosts that disable the App Router.
