@@ -88,3 +88,7 @@ Follow these steps in your Firebase console/CLI. Environment variables should be
 - `npm run build` — production build
 - `npm start` — run the compiled app
 - `npm run lint` — lint with ESLint/Next config
+
+## Static assets & hosting
+- The `public/` directory ships with a branded `imvo-logo.svg` placeholder so static hosting providers that expect an output folder named `public` can succeed without extra configuration.
+- Add favicons, Open Graph images, or PDF templates to `public/` to keep them available at build time.
