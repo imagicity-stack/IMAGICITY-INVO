@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c2132c #f3f4f6;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #c2132c;
+  border-radius: 9999px;
+}
+
+body {
+  min-height: 100vh;
+}
+
+.card {
+  @apply rounded-3xl bg-white p-6 shadow-glass border border-gray-100;
+}
+
+.section-title {
+  @apply text-lg font-semibold text-brandCharcoal flex items-center gap-2;
+}
+
+.badge {
+  @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide;
+}
