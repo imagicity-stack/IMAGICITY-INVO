@@ -1,5 +1,5 @@
 import ImvoApp from '../components/ImvoApp';
 
-export default function Home() {
+export default function ImvoCatchAll() {
   return <ImvoApp />;
 }
