@@ -3,11 +3,14 @@
 A responsive, India-ready invoicing and quotation experience for the Imagicity marketing agency. The app provides GST-aware invoice creation, quotation drafting, PDF exports, and a Firebase-ready data model.
 
 ## Features
-- **Invoices & quotations:** Capture GSTIN, place of supply, HSN/SAC, tax rate, and payment notes.
+- **Dashboard:** KPI cards (billed, collected, outstanding, overdue), recent invoices, and quick actions with date filters.
+- **Clients & catalog:** Client master with GST/outstanding/notes plus a services list with unit, rate, and GST defaults.
+- **Quotations & invoices:** Capture GSTIN, place of supply, HSN/SAC, tax rate, and payment notes; convert quotes to invoices.
 - **Indian GST defaults:** Interstate toggle (IGST vs CGST/SGST), SAC suggestions for marketing (99836/99837), and checklist reminders.
 - **PDF generation:** Exports for invoices, quotations, and a dashboard print view via jsPDF + browser print.
 - **Firebase ready:** Pre-wired configuration placeholders and a stubbed save helper to persist clients, invoices, and proposals.
-- **Responsive UI:** Red, yellow, and black Imagicity theme with mobile-friendly layouts.
+- **Payments, reports, settings:** Payments/receipts, CSV-ready reports, and company/numbering/PDF template settings panels.
+- **Responsive UI:** Red, yellow, and black Imagicity theme on a clean white background with mobile-friendly layouts.
 
 ## Running locally
 This is a static, client-side app. No build step is required.

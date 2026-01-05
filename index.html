@@ -31,10 +31,10 @@
     <section class="hero">
       <div>
         <p class="eyebrow">India-ready Billing Suite</p>
-        <h2>Invoices, quotations & GST compliance in minutes.</h2>
+        <h2>IMVO keeps Imagicity’s invoices, quotations, receipts, and GST ready — on a white canvas.</h2>
         <p class="lede">
-          IMVO helps Imagicity issue compliant invoices and marketing proposals with built-in GST guidance,
-          responsive layouts, and production-ready PDF exports.
+          Create beautiful client-facing docs, split CGST/SGST vs IGST correctly, and keep every module — clients, services,
+          quotes, invoices, payments, reports, and settings — aligned in one workspace.
         </p>
         <div class="hero-actions">
           <a href="#invoice" class="primary">Create invoice</a>
@@ -44,43 +44,174 @@
       <div class="hero-card">
         <p class="eyebrow">Highlights</p>
         <ul>
-          <li>GSTIN validation prompt & place-of-supply guidance</li>
-          <li>HSN/SAC capture for services and media buys</li>
-          <li>Split CGST/SGST vs IGST based on interstate toggle</li>
-          <li>One-click PDF exports for invoices, quotations, and dashboard</li>
-          <li>Firebase-ready data model for clients, invoices, and proposals</li>
+          <li>Dashboard KPIs with date filters and quick actions</li>
+          <li>Client master with GST + running outstanding</li>
+          <li>Catalog of services with unit, rate, GST defaults</li>
+          <li>Quotation → Invoice conversions and PDF exports</li>
+          <li>Payments, receipts, numbering, GST, and PDF settings</li>
         </ul>
       </div>
     </section>
 
-    <section class="grid" id="quick-actions">
-      <article class="card stat">
-        <p class="eyebrow">GST checklist</p>
-        <ul class="checklist">
-          <li>Capture supplier & client GSTIN (state code first two digits).</li>
-          <li>Use place of supply to decide IGST (interstate) vs CGST/SGST (intrastate).</li>
-          <li>List HSN/SAC for every line item; marketing services often use SAC 99836/99837.</li>
-          <li>Show taxable value and tax split; round to 2 decimals.</li>
-          <li>Include invoice sequence, issue date, due date, and payment terms.</li>
-        </ul>
-      </article>
-      <article class="card stat">
-        <p class="eyebrow">Templates</p>
-        <div class="chips" id="templates"></div>
-      </article>
-      <article class="card stat">
-        <p class="eyebrow">Saved clients</p>
-        <div class="client-list" id="client-list"></div>
-      </article>
+    <section class="panel" id="dashboard">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Dashboard</p>
+          <h3>Quick view and shortcuts</h3>
+        </div>
+        <div class="pill-filter" id="date-filter">
+          <button data-range="this-month" class="active">This month</button>
+          <button data-range="last-month">Last month</button>
+          <button data-range="custom">Custom</button>
+        </div>
+      </div>
+      <div class="kpis" id="kpi-cards"></div>
+      <div class="section-grid">
+        <div class="stack">
+          <h4>Recent invoices</h4>
+          <table class="table" id="recent-invoices">
+            <thead><tr><th>Invoice</th><th>Client</th><th>Status</th><th>Total</th><th>Due</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="stack">
+          <div class="side-card">
+            <h4>Quick actions</h4>
+            <div class="mini-grid">
+              <button class="primary">New Invoice</button>
+              <button class="secondary">New Quotation</button>
+              <button class="secondary">Add Client</button>
+              <button class="secondary">Add Payment</button>
+            </div>
+          </div>
+          <div class="side-card">
+            <p class="eyebrow">Templates</p>
+            <div class="chips" id="templates"></div>
+          </div>
+          <div class="side-card">
+            <p class="eyebrow">Saved clients</p>
+            <div class="client-list" id="client-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="clients">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Clients module</p>
+          <h3>Client master with GST, invoices, and notes</h3>
+        </div>
+        <button class="secondary">Add client</button>
+      </div>
+      <div class="section-grid">
+        <div class="stack">
+          <table class="table" id="clients-table">
+            <thead><tr><th>Client</th><th>GSTIN</th><th>City</th><th>Outstanding</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="side-card" id="client-detail">
+          <h4>Client detail</h4>
+          <p>Select a client to view GST, invoices, totals, and notes.</p>
+          <div class="stack" id="client-meta"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="catalog">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Catalog module</p>
+          <h3>Services and pricing</h3>
+        </div>
+        <button class="secondary">Add service</button>
+      </div>
+      <table class="table" id="services-table">
+        <thead><tr><th>Service</th><th>Unit</th><th>Default rate</th><th>GST rate</th><th>Description</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="panel" id="quotation">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Quotations module</p>
+          <h3>Draft, duplicate, approve, or convert to invoice</h3>
+        </div>
+        <button class="primary" id="quote-pdf">Download quotation PDF</button>
+      </div>
+      <div class="section-grid">
+        <div class="stack">
+          <table class="table" id="quotation-table">
+            <thead><tr><th>Quote</th><th>Client</th><th>Status</th><th>Total</th><th>Actions</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <div class="tag">Statuses: Draft • Sent • Approved • Rejected • Expired</div>
+        </div>
+        <div class="side-card">
+          <p class="eyebrow">Actions</p>
+          <ul class="checklist">
+            <li>Duplicate quotation</li>
+            <li>Convert to invoice (one click)</li>
+            <li>PDF download and share</li>
+          </ul>
+        </div>
+      </div>
+      <form class="form" id="quotation-form">
+        <div class="form-grid">
+          <label>Quotation number<input name="quoteNumber" required placeholder="IMV-QTN-011" /></label>
+          <label>Valid until<input type="date" name="validUntil" required /></label>
+          <label>Client contact<input name="quoteClient" required placeholder="Marketing Head, Brand" /></label>
+          <label>Summary<textarea name="quoteSummary" rows="2" placeholder="SEO + performance marketing retainer" ></textarea></label>
+        </div>
+        <div class="items">
+          <div class="items-head">
+            <h4>Scope & deliverables</h4>
+            <div class="inline">
+              <label>HSN/SAC <input id="quote-hsn" placeholder="99837" /></label>
+              <label>Tax rate
+                <select id="quote-tax">
+                  <option value="0">0%</option>
+                  <option value="5">5%</option>
+                  <option value="12">12%</option>
+                  <option value="18" selected>18%</option>
+                  <option value="28">28%</option>
+                </select>
+              </label>
+              <button type="button" class="secondary" id="add-quote-item">Add deliverable</button>
+            </div>
+          </div>
+          <div class="items-grid" id="quote-items"></div>
+        </div>
+      </form>
+      <div class="preview" id="quote-preview"></div>
     </section>
 
     <section class="panel" id="invoice">
       <div class="panel-head">
         <div>
-          <p class="eyebrow">Invoice composer</p>
-          <h3>Issue tax invoices with confidence</h3>
+          <p class="eyebrow">Invoices module</p>
+          <h3>Track revenue, payments, and overdue</h3>
         </div>
         <button class="primary" id="invoice-pdf">Download invoice PDF</button>
+      </div>
+      <div class="section-grid">
+        <div class="stack">
+          <table class="table" id="invoice-table">
+            <thead><tr><th>Invoice</th><th>Client</th><th>Status</th><th>Total</th><th>Due</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <div class="tag">Statuses: Draft • Sent • Partially paid • Paid • Overdue • Cancelled</div>
+        </div>
+        <div class="side-card">
+          <p class="eyebrow">Actions</p>
+          <ul class="checklist">
+            <li>Duplicate invoice</li>
+            <li>Mark as sent</li>
+            <li>Add payment and generate receipt</li>
+          </ul>
+        </div>
       </div>
       <form class="form" id="invoice-form">
         <div class="form-grid">
@@ -122,42 +253,85 @@
       <div class="preview" id="invoice-preview"></div>
     </section>
 
-    <section class="panel" id="quotation">
-      <div class="panel-head">
+    <section class="panel" id="payments">
+      <div class="section-title">
         <div>
-          <p class="eyebrow">Quotation builder</p>
-          <h3>Responsive proposals for campaigns and retainers</h3>
+          <p class="eyebrow">Payments & receipts module</p>
+          <h3>Attach collections to invoices and auto-calc outstanding</h3>
         </div>
-        <button class="primary" id="quote-pdf">Download quotation PDF</button>
+        <button class="secondary">Add payment</button>
       </div>
-      <form class="form" id="quotation-form">
-        <div class="form-grid">
-          <label>Quotation number<input name="quoteNumber" required placeholder="IMV-QTN-011" /></label>
-          <label>Valid until<input type="date" name="validUntil" required /></label>
-          <label>Client contact<input name="quoteClient" required placeholder="Marketing Head, Brand" /></label>
-          <label>Summary<textarea name="quoteSummary" rows="2" placeholder="SEO + performance marketing retainer" ></textarea></label>
+      <div class="section-grid">
+        <div class="stack">
+          <table class="table" id="payments-table">
+            <thead><tr><th>Payment</th><th>Invoice</th><th>Client</th><th>Amount</th><th>Received</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <div class="tag">Rules: payment must attach to an invoice • support partial payments • outstanding auto-updates.</div>
         </div>
-        <div class="items">
-          <div class="items-head">
-            <h4>Scope & deliverables</h4>
-            <div class="inline">
-              <label>HSN/SAC <input id="quote-hsn" placeholder="99837" /></label>
-              <label>Tax rate
-                <select id="quote-tax">
-                  <option value="0">0%</option>
-                  <option value="5">5%</option>
-                  <option value="12">12%</option>
-                  <option value="18" selected>18%</option>
-                  <option value="28">28%</option>
-                </select>
-              </label>
-              <button type="button" class="secondary" id="add-quote-item">Add deliverable</button>
-            </div>
-          </div>
-          <div class="items-grid" id="quote-items"></div>
+        <div class="preview" id="receipt-preview">
+          <h4>Receipt preview</h4>
+          <p class="eyebrow">PDF-ready • UPI/IMPS/NEFT friendly</p>
+          <div class="stack" id="receipt-meta"></div>
         </div>
-      </form>
-      <div class="preview" id="quote-preview"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="reports">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Reports module</p>
+          <h3>Business intelligence for Imagicity</h3>
+        </div>
+        <button class="secondary">Export CSV</button>
+      </div>
+      <div class="grid">
+        <article class="card tight">
+          <p class="eyebrow">Sales report</p>
+          <strong id="report-sales">₹0</strong>
+          <p class="lede">Month-wise revenue and growth.</p>
+        </article>
+        <article class="card tight">
+          <p class="eyebrow">Outstanding report</p>
+          <strong id="report-outstanding">₹0</strong>
+          <p class="lede">Overdue + open receivables.</p>
+        </article>
+        <article class="card tight">
+          <p class="eyebrow">Client wise revenue</p>
+          <strong id="report-client-revenue">₹0</strong>
+          <p class="lede">Top 3 customers by billing.</p>
+        </article>
+        <article class="card tight">
+          <p class="eyebrow">GST summary</p>
+          <strong id="report-gst">₹0</strong>
+          <p class="lede">CGST/SGST/IGST collected.</p>
+        </article>
+      </div>
+      <div class="tag">Exports: invoices and payments CSV for accounting.</div>
+    </section>
+
+    <section class="panel" id="settings">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Settings module</p>
+          <h3>Identity, numbering, tax, and PDF templates</h3>
+        </div>
+        <button class="secondary">Save settings</button>
+      </div>
+      <div class="form-grid">
+        <label>Company profile
+          <textarea rows="3" placeholder="Logo, address, GSTIN, PAN, bank details, UPI QR, default terms"></textarea>
+        </label>
+        <label>Numbering settings
+          <textarea rows="3" placeholder="Invoice prefix, quotation prefix, FY format, next running number"></textarea>
+        </label>
+        <label>Tax settings
+          <textarea rows="3" placeholder="GST preferences, place of supply defaults, reverse charge text"></textarea>
+        </label>
+        <label>PDF template settings
+          <textarea rows="3" placeholder="Letterhead, colour accents, signature, footer notes"></textarea>
+        </label>
+      </div>
     </section>
 
     <section class="panel" id="compliance">
