@@ -5,7 +5,7 @@ import { BillingDocument } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const token = req.headers.get("authorization")?.replace("Bearer ", "");
     if (!token) return new Response("Missing token", { status: 401 });
@@ -16,7 +16,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return new Response("Forbidden", { status: 403 });
     }
 
-    const docSnap = await db.collection("documents").doc(params.id).get();
+    const { id } = await context.params;
+
+    const docSnap = await db.collection("documents").doc(id).get();
     if (!docSnap.exists) return new Response("Not found", { status: 404 });
     const data = docSnap.data() as BillingDocument;
 
