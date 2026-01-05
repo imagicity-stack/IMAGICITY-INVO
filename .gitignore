@@ -1,0 +1,8 @@
+node_modules
+.next
+.env.local
+npm-debug.log*
+.pnp.cjs
+.pnp.loader.mjs
+.DS_Store
+coverage
