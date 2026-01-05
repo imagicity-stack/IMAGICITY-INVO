@@ -44,7 +44,10 @@ export function BillingForm({ kind }: Props) {
     if (!user) return;
     const q = query(collection(db, "documents"), orderBy("issueDate", "desc"));
     return onSnapshot(q, (snap) => {
-      const docs = snap.docs.map((d) => ({ id: d.id, ...(d.data() as BillingDocument) }));
+      const docs = snap.docs.map((d) => {
+        const data = d.data() as BillingDocument;
+        return { ...data, id: d.id };
+      });
       setDocuments(docs.filter((doc) => doc.kind === kind));
     });
   }, [db, kind, user]);

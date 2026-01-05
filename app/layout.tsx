@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   description: "Industrial-grade invoicing, quotations, and GST-ready billing for Imagicity.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">

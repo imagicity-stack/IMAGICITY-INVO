@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { collection, onSnapshot } from "firebase/firestore";
@@ -26,7 +28,12 @@ export default function Home() {
   useEffect(() => {
     if (!user) return;
     const unsub = onSnapshot(collection(db, "documents"), (snap) => {
-      setDocs(snap.docs.map((d) => ({ id: d.id, ...(d.data() as BillingDocument) })));
+      setDocs(
+        snap.docs.map((d) => {
+          const data = d.data() as BillingDocument;
+          return { ...data, id: d.id };
+        })
+      );
     });
     return unsub;
   }, [db, user]);
