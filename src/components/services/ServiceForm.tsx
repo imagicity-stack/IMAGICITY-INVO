@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
-import { Service } from '../../lib/services/serviceTypes';
+import { Service, ServiceCategory } from '../../lib/services/serviceTypes';
 import { ServiceInput, serviceSchema } from '../../lib/services/serviceSchema';
 
 type Mode = 'create' | 'edit';
@@ -13,18 +13,19 @@ interface Props {
   onSubmit: (data: ServiceInput) => Promise<void>;
   onCancel: () => void;
   submitting?: boolean;
+  categories?: ServiceCategory[];
+  onAddCategory?: (name: string) => Promise<void>;
 }
 
 const typeOptions = ['Service', 'Package', 'Add-on'] as const;
-const categoryOptions = ['Branding', 'Web', 'Marketing', 'Ads', 'Content', 'Design', 'Other'] as const;
 const pricingOptions = ['Fixed', 'Hourly', 'Monthly', 'Per Unit'] as const;
 const statusOptions = ['Active', 'Inactive'] as const;
 
-export default function ServiceForm({ mode, initialData, onSubmit, onCancel, submitting }: Props) {
+export default function ServiceForm({ mode, initialData, onSubmit, onCancel, submitting, categories = [], onAddCategory }: Props) {
   const [form, setForm] = useState<ServiceInput>(() => ({
     name: initialData?.name || '',
     type: initialData?.type || 'Service',
-    category: initialData?.category || 'Other',
+    category: initialData?.category || categories[0] || '',
     description: initialData?.description || '',
     deliverables: initialData?.deliverables || [],
     pricingModel: initialData?.pricingModel || 'Fixed',
@@ -82,6 +83,12 @@ export default function ServiceForm({ mode, initialData, onSubmit, onCancel, sub
     }
   };
 
+  useEffect(() => {
+    if (!form.category && categories.length) {
+      setForm((prev) => ({ ...prev, category: categories[0] }));
+    }
+  }, [categories, form.category]);
+
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -137,19 +144,31 @@ export default function ServiceForm({ mode, initialData, onSubmit, onCancel, sub
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="text-sm font-semibold text-gray-700">
-          Category
-          <select
+        <label className="text-sm font-semibold text-gray-700 space-y-1">
+          <div className="flex items-center justify-between">
+            <span>Category</span>
+            <button
+              type="button"
+              onClick={() => onAddCategory?.(form.category)}
+              className="text-xs font-semibold text-brandPrimary underline"
+            >
+              Save to categories
+            </button>
+          </div>
+          <input
+            list="service-categories"
             value={form.category}
             onChange={(e) => handleChange('category', e.target.value)}
-            className="mt-1 w-full rounded-2xl border border-gray-200 px-3 py-2"
-          >
-            {categoryOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
+            placeholder="Type or select a category"
+            className="w-full rounded-2xl border border-gray-200 px-3 py-2"
+          />
+          <datalist id="service-categories">
+            {categories.map((option) => (
+              <option key={option} value={option} />
             ))}
-          </select>
+          </datalist>
+          {errors.category && <p className="text-xs text-rose-600">{errors.category}</p>}
+          {!categories.length && <p className="text-xs text-gray-500">No categories yet—type a new one to create it.</p>}
         </label>
         <label className="text-sm font-semibold text-gray-700">
           Status

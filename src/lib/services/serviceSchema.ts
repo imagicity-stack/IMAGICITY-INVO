@@ -2,14 +2,17 @@ import { z } from 'zod';
 import { PricingModel, ServiceCategory, ServiceStatus, ServiceType } from './serviceTypes';
 
 const typeEnum = z.enum(['Service', 'Package', 'Add-on']);
-const categoryEnum = z.enum(['Branding', 'Web', 'Marketing', 'Ads', 'Content', 'Design', 'Other']);
 const pricingEnum = z.enum(['Fixed', 'Hourly', 'Monthly', 'Per Unit']);
 const statusEnum = z.enum(['Active', 'Inactive']);
 
 export const serviceSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   type: typeEnum.default('Service'),
-  category: categoryEnum.default('Other'),
+  category: z
+    .string()
+    .min(1, 'Category is required')
+    .transform((val) => val.trim())
+    .pipe(z.string().min(1, 'Category is required')) as unknown as z.ZodType<ServiceCategory>,
   description: z.string().optional().or(z.literal('').transform(() => undefined)),
   deliverables: z
     .union([z.array(z.string().min(1)), z.string()])
