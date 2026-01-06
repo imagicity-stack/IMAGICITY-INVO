@@ -399,13 +399,20 @@ export default function ImvoApp() {
     <div className="min-h-screen bg-gradient-to-br from-[#f6f7fb] via-white to-[#eef2ff]">
       <div className="mx-auto max-w-[1500px] px-4 py-6">
         <header className="sticky top-4 z-30 mb-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-gray-100 bg-white/90 px-5 py-4 shadow-lg shadow-brandPrimary/5 backdrop-blur">
-          <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brandPrimary to-brandSecondary text-lg font-bold text-white shadow-lg shadow-brandPrimary/20">
-              IM
-            </span>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">Imagicity</p>
-              <p className="text-lg font-bold text-brandCharcoal">INVO CRM</p>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brandPrimary to-brandSecondary text-lg font-bold text-white shadow-lg shadow-brandPrimary/20">
+                IM
+              </span>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">Imagicity</p>
+                <p className="text-lg font-bold text-brandCharcoal">INVO CRM</p>
+              </div>
+            </div>
+            <div className="min-w-[240px] space-y-1 rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3 shadow-inner shadow-white">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brandPrimary">Hello, Admin 👋</p>
+              <p className="text-sm font-bold text-brandCharcoal">Welcome back to your Imvo workspace</p>
+              <p className="text-xs text-gray-600">Track performance, billing, and learning momentum at a glance.</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -459,19 +466,15 @@ export default function ImvoApp() {
           <section className="space-y-6">
             {active === 'dashboard' && (
               <div className="space-y-6">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold text-gray-500">Hello, Admin 👋</p>
-                    <h1 className="text-2xl font-bold text-brandCharcoal">Welcome back to your Imvo workspace</h1>
-                    <p className="text-sm text-gray-600">Track performance, billing, and learning momentum at a glance.</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="hidden items-center gap-2 rounded-full bg-brandPrimary/10 px-3 py-1 text-xs font-semibold text-brandPrimary md:inline-flex">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-brandPrimary/30 bg-white/90 px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-brandPrimary/10 px-3 py-1 text-xs font-semibold text-brandPrimary">
                       <span className="inline-flex h-2 w-2 rounded-full bg-brandAccent" aria-hidden />
                       Admin dashboard
                     </span>
                     <span className="rounded-full bg-brandSecondary/10 px-3 py-1 text-xs font-semibold text-brandCharcoal">Updated just now</span>
                   </div>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-brandPrimary">Focus: performance & billing</span>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-3">
