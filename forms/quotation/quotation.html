@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client Quotation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="quotation.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="page__top">
+      <div>
+        <p class="eyebrow">Invoice To</p>
+        <h1 id="client-name"></h1>
+        <div class="client-meta">
+          <p id="client-address"></p>
+          <p id="client-email"></p>
+        </div>
+      </div>
+      <div class="logo-block">
+        <div class="logo-accent">INVO</div>
+        <div class="logo-main">ICE</div>
+      </div>
+    </header>
+
+    <section class="info-row">
+      <div class="card card--compact">
+        <h3>Term &amp; Conditions</h3>
+        <ul id="terms-list" class="bullet-list"></ul>
+      </div>
+      <div class="card card--compact">
+        <h3>Find Us for More Information</h3>
+        <ul class="contact-list">
+          <li>
+            <span class="label">Phone</span>
+            <span id="contact-phone"></span>
+          </li>
+          <li>
+            <span class="label">Email</span>
+            <span id="contact-email"></span>
+          </li>
+          <li>
+            <span class="label">Location</span>
+            <span id="contact-address"></span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="quotation" id="quotation">
+      <div class="quotation__header">
+        <h2>Quotation Details</h2>
+        <p class="muted" id="quotation-date"></p>
+      </div>
+      <div class="table">
+        <div class="table__row table__row--head">
+          <div>Item Description</div>
+          <div>Qty.</div>
+          <div>Unit Price</div>
+          <div>Amount</div>
+        </div>
+        <div id="items-body"></div>
+        <div class="table__row table__row--footer">
+          <div></div><div></div>
+          <div class="label">Subtotal</div>
+          <div id="subtotal"></div>
+        </div>
+        <div class="table__row table__row--footer">
+          <div></div><div></div>
+          <div class="label">Tax</div>
+          <div id="tax"></div>
+        </div>
+        <div class="table__row table__row--footer total-row">
+          <div></div><div></div>
+          <div class="label">Total</div>
+          <div id="total"></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div>
+        <p class="muted">Prepared by</p>
+        <p id="prepared-by" class="footer__name"></p>
+      </div>
+      <div class="invoice-meta">
+        <p>No. Invoice: <strong id="invoice-number"></strong></p>
+        <p>Due Date: <strong id="due-date"></strong></p>
+      </div>
+      <button id="download-btn" class="download">Download PDF</button>
+    </footer>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js" integrity="sha512-YcsIPZx1bM5GxQbrrf5gkP7FpC18JNpDutVdGsPV1oDttYVOlJawVSNlEInxjeaUp43EIBosHuLl5EJo7N2zOg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="quotation.js"></script>
+</body>
+</html>
