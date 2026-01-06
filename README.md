@@ -39,6 +39,14 @@ Use the environment variables already configured in Vercel for Firebase. These s
 ## Assets
 The sidebar uses SVG icons stored in `public/` (`dashboard.svg`, `invoice.svg`, `quotation.svg`, `clients.svg`, `services.svg`, `reminder.svg`). No `.ico` files are generated.
 
+## Invoice Module
+- **List & filters**: Search by invoice number or client, filter by status, overdue-only toggle, and archived toggle within the invoice section.
+- **Creation flows**: Start manually or convert from an existing quotation; client and service details are captured as snapshots for immutability. Manual invoices can reuse saved clients or accept inline client details.
+- **Line items & math**: Items support service-based or custom lines with GST-inclusive or exclusive pricing, automatic subtotal/tax/grand total math, and optional round-off values.
+- **Persistence**: Firestore writes use `stripUndefinedDeep` to avoid undefined fields, store snapshots, and maintain audit-friendly timestamps.
+- **Payments & status**: Record payments in a dedicated subcollection, auto-refresh `amountPaid`, `balanceDue`, and derived status (Draft/Issued/Partially Paid/Paid/Overdue/Void), and support archive/restore without hard deletes.
+- **PDF output**: Downloadable HTML/PDF-friendly markup reuses invoice snapshots for multi-page-safe printing, mirroring quotation styling.
+
 ## Notes
 - Tailwind powers the modern, creative layout while keeping the background white.
 - The UI includes local state for invoices, quotations, services, and clients so you can test interactions before hooking up Firebase.

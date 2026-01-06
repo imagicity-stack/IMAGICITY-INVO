@@ -14,6 +14,7 @@ import { app, db } from '../lib/firebase';
 import ServicesSection from '../src/components/services/ServicesSection';
 import { listServices } from '../src/lib/services/serviceService';
 import QuotationSection from '../src/components/quotations/QuotationSection';
+import InvoiceSection from '../src/components/invoices/InvoiceSection';
 
 const navItems = [
   { key: 'dashboard', label: 'Dashboard', icon: '/dashboard.svg' },
@@ -764,106 +765,9 @@ export default function ImvoApp() {
 
             {active === 'invoice' && (
               <SectionWrapper>
-          <SectionHeader icon="/invoice.svg" title="Invoices" />
-          <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
-            <form onSubmit={handleInvoiceSubmit} className="card space-y-4">
-              <div className="flex items-start justify-between">
-                <p className="text-lg font-semibold">Generate invoice</p>
-                <Pill tone="primary">Live preview</Pill>
-              </div>
-              <div className="grid gap-3 md:grid-cols-2">
-                <label className="text-sm font-semibold text-gray-600">
-                  Client
-                  <select
-                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                    disabled={!clients.length}
-                    value={invoiceForm.client}
-                    onChange={(e) => setInvoiceForm({ ...invoiceForm, client: e.target.value })}
-                  >
-                    {!clients.length && <option>No clients yet</option>}
-                    {clients.map((client) => (
-                      <option key={client.id || client.legalName}>{client.legalName}</option>
-                    ))}
-                  </select>
-                </label>
-                <label className="text-sm font-semibold text-gray-600">
-                  Service
-                  <select
-                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                    value={invoiceForm.service}
-                    onChange={(e) => handleInvoiceServiceChange(e.target.value)}
-                    disabled={!services.length}
-                  >
-                    {!services.length && <option>No services yet</option>}
-                    {services.map((service) => (
-                      <option key={service.serviceId}>{service.name}</option>
-                    ))}
-                  </select>
-                  {servicesLoading && <p className="text-xs text-gray-500">Loading services…</p>}
-                  {servicesError && <p className="text-xs text-rose-600">{servicesError}</p>}
-                </label>
-                <label className="text-sm font-semibold text-gray-600">
-                  Amount (USD)
-                  <input
-                    type="number"
-                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                    value={invoiceForm.amount}
-                    onChange={(e) => setInvoiceForm({ ...invoiceForm, amount: Number(e.target.value) })}
-                  />
-                </label>
-                <label className="text-sm font-semibold text-gray-600">
-                  Due date
-                  <input
-                    type="date"
-                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                    value={invoiceForm.due}
-                    onChange={(e) => setInvoiceForm({ ...invoiceForm, due: e.target.value })}
-                  />
-                </label>
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <input
-                    type="checkbox"
-                    id="status"
-                    checked={invoiceForm.status === 'Paid'}
-                    onChange={(e) => setInvoiceForm({ ...invoiceForm, status: e.target.checked ? 'Paid' : 'Pending' })}
-                    className="h-4 w-4 rounded border-gray-300 text-brandPrimary focus:ring-brandPrimary"
-                  />
-                  <label htmlFor="status">Mark as paid</label>
-                </div>
-                <button
-                  type="submit"
-                  className="rounded-full bg-brandPrimary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/30 transition hover:-translate-y-0.5"
-                >
-                  Save invoice
-                </button>
-              </div>
-            </form>
-
-              <div className="card space-y-4 bg-gradient-to-br from-brandMuted to-white">
-                <div className="flex items-center justify-between">
-                  <p className="text-lg font-semibold">Recent invoices</p>
-                  <Pill tone="secondary">Auto-sync soon</Pill>
-                </div>
-                <div className="space-y-3">
-                  {invoices.map((invoice) => (
-                    <div key={invoice.id} className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white px-4 py-3">
-                      <div>
-                        <p className="font-semibold">{invoice.id}</p>
-                        <p className="text-sm text-gray-500">{invoice.client}</p>
-                      </div>
-                      <div className="text-right">
-                        <Pill tone={invoice.status === 'Paid' ? 'green' : 'red'}>{invoice.status}</Pill>
-                        <p className="mt-1 font-semibold text-brandCharcoal">${invoice.amount.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </SectionWrapper>
-        )}
+                <InvoiceSection />
+              </SectionWrapper>
+            )}
 
             {active === 'quotation' && (
               <SectionWrapper>
