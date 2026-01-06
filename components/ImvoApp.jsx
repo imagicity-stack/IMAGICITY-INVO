@@ -1,12 +1,12 @@
 'use client';
 
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 
 import ClientDetail from './clients/ClientDetail';
+import ClientForm from './clients/ClientForm';
 import ClientTable from './clients/ClientTable';
-import { archiveClient, fetchClients, restoreClient } from '../lib/clients/clientService';
+import { archiveClient, deleteClient, fetchClients, restoreClient } from '../lib/clients/clientService';
 
 const navItems = [
   { key: 'dashboard', label: 'Dashboard', icon: '/dashboard.svg' },
@@ -65,6 +65,7 @@ export default function ImvoApp() {
   const [clientsLoading, setClientsLoading] = useState(false);
   const [clientsError, setClientsError] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
+  const [clientDetailOpen, setClientDetailOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
   const [includeArchived, setIncludeArchived] = useState(false);
   const [search, setSearch] = useState('');
@@ -90,8 +91,6 @@ export default function ImvoApp() {
 
   const [serviceForm, setServiceForm] = useState({ title: '', price: '', cycle: 'monthly', description: '' });
 
-  const router = useRouter();
-
   const handleArchiveClient = async (client) => {
     await archiveClient(client.id);
     await loadClients();
@@ -104,25 +103,32 @@ export default function ImvoApp() {
     setSelectedClient((prev) => (prev?.id === client.id ? { ...prev, isArchived: false } : prev));
   };
 
-  const handleEditClient = (client) => {
-    router.push(`/clients/${client.id}/edit`);
-  };
+  const [clientFormOpen, setClientFormOpen] = useState(false);
+  const [clientFormMode, setClientFormMode] = useState('create');
+  const [clientFormInitial, setClientFormInitial] = useState(null);
 
-  const handleCreateClient = () => {
-    router.push('/clients/new');
-  };
-
-  const loadClients = async () => {
+  const loadClients = async (selectClientId) => {
     setClientsLoading(true);
     setClientsError('');
     try {
       const data = await fetchClients({ status: statusFilter || undefined, includeArchived, search });
       setClients(data);
-      if (data.length && !selectedClient) {
-        setSelectedClient(data[0]);
-      }
-      if (!data.length) {
-        setSelectedClient(null);
+      if (selectClientId) {
+        const match = data.find((entry) => entry.id === selectClientId);
+        if (match) {
+          setSelectedClient(match);
+        } else if (data.length) {
+          setSelectedClient(data[0]);
+        } else {
+          setSelectedClient(null);
+        }
+      } else {
+        if (data.length && !selectedClient) {
+          setSelectedClient(data[0]);
+        }
+        if (!data.length) {
+          setSelectedClient(null);
+        }
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to load clients';
@@ -207,10 +213,44 @@ export default function ImvoApp() {
 
   const SectionWrapper = ({ children }) => <div className="space-y-6">{children}</div>;
 
+  const openCreateClient = () => {
+    setClientFormMode('create');
+    setClientFormInitial(null);
+    setClientFormOpen(true);
+  };
+
+  const openEditClient = (client) => {
+    setClientFormMode('edit');
+    setClientFormInitial(client);
+    setClientDetailOpen(false);
+    setClientFormOpen(true);
+  };
+
+  const handleClientSaved = (clientId) => {
+    setClientFormOpen(false);
+    loadClients(clientId);
+    setClientDetailOpen(false);
+  };
+
+  const openClientDetail = (client) => {
+    setSelectedClient(client);
+    setClientDetailOpen(true);
+  };
+
+  const handleDeleteClient = async (client) => {
+    await deleteClient(client.id);
+    setClientDetailOpen(false);
+    if (selectedClient?.id === client.id) {
+      setSelectedClient(null);
+    }
+    await loadClients();
+  };
+
   return (
-    <main className="mx-auto flex min-h-screen max-w-[1400px] flex-col gap-6 px-4 py-8 md:flex-row md:px-8">
-      <aside className="md:w-1/4 lg:w-1/5">
-        <div className="card sticky top-6 flex flex-col gap-6">
+    <>
+      <main className="mx-auto flex min-h-screen max-w-[1400px] flex-col gap-6 px-4 py-8 md:flex-row md:px-8">
+        <aside className="md:w-1/4 lg:w-1/5">
+          <div className="card sticky top-6 flex flex-col gap-6">
           <div className="flex items-center gap-3">
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brandRed text-white text-xl font-bold shadow-lg shadow-brandRed/30">IM</span>
             <div>
@@ -511,7 +551,7 @@ export default function ImvoApp() {
                   </button>
                   <button
                     type="button"
-                    onClick={handleCreateClient}
+                    onClick={openCreateClient}
                     className="rounded-xl bg-brandRed px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brandRed/20 transition hover:-translate-y-0.5 hover:bg-red-700"
                   >
                     Add Client
@@ -569,35 +609,20 @@ export default function ImvoApp() {
               </div>
             </div>
 
-            <div className="grid gap-6 xl:grid-cols-[1.8fr_1fr]">
-              <div className="space-y-4">
-                {clientsError && (
-                  <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                    {clientsError}
-                  </div>
-                )}
-                <ClientTable
-                  clients={clients}
-                  loading={clientsLoading}
-                  onSelect={setSelectedClient}
-                  onEdit={handleEditClient}
-                  onArchive={handleArchiveClient}
-                  onRestore={handleRestoreClient}
-                />
-              </div>
-
-              <div className="space-y-4">
-                {selectedClient ? (
-                  <ClientDetail
-                    client={selectedClient}
-                    onEdit={() => handleEditClient(selectedClient)}
-                    onArchive={() => handleArchiveClient(selectedClient)}
-                    onRestore={() => handleRestoreClient(selectedClient)}
-                  />
-                ) : (
-                  <div className="card text-sm text-gray-600">Select a client to see details and quick actions.</div>
-                )}
-              </div>
+            <div className="space-y-4">
+              {clientsError && (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  {clientsError}
+                </div>
+              )}
+              <ClientTable
+                clients={clients}
+                loading={clientsLoading}
+                onSelect={openClientDetail}
+                onEdit={openEditClient}
+                onArchive={handleArchiveClient}
+                onRestore={handleRestoreClient}
+              />
             </div>
           </SectionWrapper>
         )}
@@ -682,6 +707,58 @@ export default function ImvoApp() {
           </SectionWrapper>
         )}
       </section>
-    </main>
+      </main>
+
+      {clientFormOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+            <div className="absolute right-4 top-4">
+              <button
+                type="button"
+                aria-label="Close client form"
+                onClick={() => setClientFormOpen(false)}
+                className="rounded-full bg-white/80 px-3 py-1 text-sm font-semibold text-brandCharcoal shadow"
+              >
+                Close
+              </button>
+            </div>
+            <div className="card bg-white shadow-2xl">
+              <ClientForm
+                mode={clientFormMode}
+                initialClient={clientFormInitial || undefined}
+                onSuccess={handleClientSaved}
+                onCancel={() => setClientFormOpen(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {clientDetailOpen && selectedClient && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="absolute right-4 top-4">
+              <button
+                type="button"
+                aria-label="Close client detail"
+                onClick={() => setClientDetailOpen(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-lg font-semibold text-brandCharcoal shadow"
+              >
+                ×
+              </button>
+            </div>
+            <div className="card bg-white shadow-2xl">
+              <ClientDetail
+                client={selectedClient}
+                onEdit={() => openEditClient(selectedClient)}
+                onArchive={() => handleArchiveClient(selectedClient)}
+                onRestore={() => handleRestoreClient(selectedClient)}
+                onDelete={() => handleDeleteClient(selectedClient)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
