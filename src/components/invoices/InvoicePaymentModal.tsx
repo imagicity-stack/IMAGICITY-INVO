@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Timestamp } from 'firebase/firestore';
 import { InvoicePaymentPayload } from '../../lib/invoices/invoiceTypes';
 
 interface Props {
@@ -22,7 +23,7 @@ export default function InvoicePaymentModal({ open, onClose, onSubmit }: Props) 
     onSubmit({
       amount,
       mode,
-      paymentDate: new Date(paymentDate),
+      paymentDate: Timestamp.fromDate(new Date(paymentDate)),
       reference,
       notes,
     });

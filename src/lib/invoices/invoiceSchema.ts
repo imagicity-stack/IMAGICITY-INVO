@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Timestamp } from 'firebase/firestore';
 import { DiscountType, InvoiceItemPayload, InvoicePaymentPayload, InvoiceStatus } from './invoiceTypes';
 
 const addressSchema = z.object({
@@ -94,6 +95,9 @@ export function coerceInvoicePayments(payments: InvoicePaymentPayload[]): Invoic
   return payments.map((payment) => ({
     ...payment,
     amount: Number(payment.amount || 0),
-    paymentDate: payment.paymentDate instanceof Date ? payment.paymentDate : new Date(payment.paymentDate as any),
+    paymentDate:
+      payment.paymentDate instanceof Date
+        ? Timestamp.fromDate(payment.paymentDate)
+        : (payment.paymentDate as any),
   }));
 }

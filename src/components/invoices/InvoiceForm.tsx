@@ -54,9 +54,9 @@ export default function InvoiceForm({ initialData, quotations, clients, services
           brandName: match.brandName,
           email: match.email,
           phone: match.phone,
-          billingAddress: match.address,
+          billingAddress: match.billingAddress,
           gstRegistered: !!match.gstRegistered,
-          gstin: match.gstNumber,
+          gstin: match.gstin,
         } as any);
       }
     }
@@ -69,7 +69,7 @@ export default function InvoiceForm({ initialData, quotations, clients, services
     const payload: InvoicePayload = {
       ...initialData,
       invoiceId: initialData?.invoiceId,
-      invoiceNumber: invoiceNumber || initialData?.invoiceNumber || undefined,
+      invoiceNumber: invoiceNumber || initialData?.invoiceNumber || '',
       source,
       quotationId: source === 'quotation' ? selectedQuotation : null,
       clientSnapshot,
@@ -222,7 +222,7 @@ export default function InvoiceForm({ initialData, quotations, clients, services
           Discount type
           <select
             value={discountType}
-            onChange={(e) => setDiscountType(e.target.value)}
+            onChange={(e) => setDiscountType(e.target.value as any)}
             className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm"
           >
             <option value="None">None</option>
