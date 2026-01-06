@@ -112,7 +112,6 @@ export default function LoginPage() {
               <div className="space-y-2 text-center">
                 <p className="text-xs uppercase tracking-[0.4em] text-rose-200">Admin Login</p>
                 <h2 className="text-2xl font-semibold">Enter your credentials</h2>
-                <p className="text-sm text-slate-300">Access is restricted to admins saved in your Firebase users collection.</p>
               </div>
 
               <form className="space-y-4" onSubmit={handleSubmit}>
@@ -152,8 +151,8 @@ export default function LoginPage() {
               </form>
 
               <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
-                <span>Protected by Firebase Auth</span>
-                <span className="text-rose-200">Role: admin required</span>
+                <span className="text-rose-200">Admins only</span>
+                <span>Firebase secured</span>
               </div>
             </div>
           </div>

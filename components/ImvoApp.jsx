@@ -1,12 +1,15 @@
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { getAuth, signOut } from 'firebase/auth';
 import { useEffect, useMemo, useState } from 'react';
 
 import ClientDetail from './clients/ClientDetail';
 import ClientForm from './clients/ClientForm';
 import ClientTable from './clients/ClientTable';
 import { archiveClient, deleteClient, fetchClients, restoreClient } from '../lib/clients/clientService';
+import { app } from '../lib/firebase';
 
 const navItems = [
   { key: 'dashboard', label: 'Dashboard', icon: '/dashboard.svg' },
@@ -72,6 +75,7 @@ function Pill({ children, tone = 'muted' }) {
 }
 
 export default function ImvoApp() {
+  const router = useRouter();
   const [active, setActive] = useState('dashboard');
   const [clients, setClients] = useState([]);
   const [clientsLoading, setClientsLoading] = useState(false);
@@ -102,6 +106,19 @@ export default function ImvoApp() {
   });
 
   const [serviceForm, setServiceForm] = useState({ title: '', price: '', cycle: 'monthly', description: '' });
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut(getAuth(app));
+      router.push('/');
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Sign out failed', error);
+      setSigningOut(false);
+    }
+  };
 
   const handleArchiveClient = async (client) => {
     await archiveClient(client.id);
@@ -259,8 +276,38 @@ export default function ImvoApp() {
   };
 
   return (
-    <>
-      <main className="mx-auto flex min-h-screen max-w-[1400px] flex-col gap-6 px-4 py-8 md:flex-row md:px-8">
+    <div className="min-h-screen bg-brandMuted">
+      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/80 backdrop-blur">
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-4 md:px-8">
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brandRed text-white text-xl font-bold shadow-lg shadow-brandRed/30">
+              IM
+            </span>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-brandRed">Invo</p>
+              <p className="text-lg font-bold text-brandCharcoal">CRM for Imagicity</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden items-center gap-2 rounded-full bg-brandRed/10 px-3 py-1 text-xs font-semibold text-brandRed md:flex">
+              <span className="inline-flex h-2 w-2 rounded-full bg-brandRed" aria-hidden />
+              Admin session
+            </div>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="flex items-center gap-2 rounded-full bg-brandCharcoal px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brandRed/20 transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brandRed disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" aria-hidden />
+              {signingOut ? 'Signing out…' : 'Sign out'}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto flex min-h-[calc(100vh-80px)] max-w-[1400px] flex-col gap-6 px-4 py-8 md:flex-row md:px-8">
         <aside className="md:w-1/4 lg:w-1/5">
           <div className="card sticky top-6 flex flex-col gap-6">
           <div className="flex items-center gap-3">
@@ -441,83 +488,83 @@ export default function ImvoApp() {
                 </div>
               </div>
             </div>
-          </SectionWrapper>
-        )}
+        </SectionWrapper>
+      )}
 
-        {active === 'invoice' && (
-          <SectionWrapper>
-            <SectionHeader icon="/invoice.svg" title="Invoices" />
-            <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
-              <form onSubmit={handleInvoiceSubmit} className="card space-y-4">
-                <div className="flex items-start justify-between">
-                  <p className="text-lg font-semibold">Generate invoice</p>
-                  <Pill tone="red">Live preview</Pill>
-                </div>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <label className="text-sm font-semibold text-gray-600">
-                    Client
-                    <select
-                      className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                      disabled={!clients.length}
-                      value={invoiceForm.client}
-                      onChange={(e) => setInvoiceForm({ ...invoiceForm, client: e.target.value })}
-                    >
-                      {!clients.length && <option>No clients yet</option>}
-                      {clients.map((client) => (
-                        <option key={client.id || client.legalName}>{client.legalName}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-sm font-semibold text-gray-600">
-                    Service
-                    <select
-                      className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                      value={invoiceForm.service}
-                      onChange={(e) => setInvoiceForm({ ...invoiceForm, service: e.target.value })}
-                    >
-                      {services.map((service) => (
-                        <option key={service.title}>{service.title}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-sm font-semibold text-gray-600">
-                    Amount (USD)
-                    <input
-                      type="number"
-                      className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                      value={invoiceForm.amount}
-                      onChange={(e) => setInvoiceForm({ ...invoiceForm, amount: Number(e.target.value) })}
-                    />
-                  </label>
-                  <label className="text-sm font-semibold text-gray-600">
-                    Due date
-                    <input
-                      type="date"
-                      className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                      value={invoiceForm.due}
-                      onChange={(e) => setInvoiceForm({ ...invoiceForm, due: e.target.value })}
-                    />
-                  </label>
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <input
-                      type="checkbox"
-                      id="status"
-                      checked={invoiceForm.status === 'Paid'}
-                      onChange={(e) => setInvoiceForm({ ...invoiceForm, status: e.target.checked ? 'Paid' : 'Pending' })}
-                      className="h-4 w-4 rounded border-gray-300 text-brandRed focus:ring-brandRed"
-                    />
-                    <label htmlFor="status">Mark as paid</label>
-                  </div>
-                  <button
-                    type="submit"
-                    className="rounded-full bg-brandRed px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-brandRed/30 transition hover:-translate-y-0.5"
+      {active === 'invoice' && (
+        <SectionWrapper>
+          <SectionHeader icon="/invoice.svg" title="Invoices" />
+          <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+            <form onSubmit={handleInvoiceSubmit} className="card space-y-4">
+              <div className="flex items-start justify-between">
+                <p className="text-lg font-semibold">Generate invoice</p>
+                <Pill tone="red">Live preview</Pill>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="text-sm font-semibold text-gray-600">
+                  Client
+                  <select
+                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+                    disabled={!clients.length}
+                    value={invoiceForm.client}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, client: e.target.value })}
                   >
-                    Save invoice
-                  </button>
+                    {!clients.length && <option>No clients yet</option>}
+                    {clients.map((client) => (
+                      <option key={client.id || client.legalName}>{client.legalName}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm font-semibold text-gray-600">
+                  Service
+                  <select
+                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+                    value={invoiceForm.service}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, service: e.target.value })}
+                  >
+                    {services.map((service) => (
+                      <option key={service.title}>{service.title}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm font-semibold text-gray-600">
+                  Amount (USD)
+                  <input
+                    type="number"
+                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+                    value={invoiceForm.amount}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, amount: Number(e.target.value) })}
+                  />
+                </label>
+                <label className="text-sm font-semibold text-gray-600">
+                  Due date
+                  <input
+                    type="date"
+                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+                    value={invoiceForm.due}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, due: e.target.value })}
+                  />
+                </label>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    id="status"
+                    checked={invoiceForm.status === 'Paid'}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, status: e.target.checked ? 'Paid' : 'Pending' })}
+                    className="h-4 w-4 rounded border-gray-300 text-brandRed focus:ring-brandRed"
+                  />
+                  <label htmlFor="status">Mark as paid</label>
                 </div>
-              </form>
+                <button
+                  type="submit"
+                  className="rounded-full bg-brandRed px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-brandRed/30 transition hover:-translate-y-0.5"
+                >
+                  Save invoice
+                </button>
+              </div>
+            </form>
 
               <div className="card space-y-4 bg-gradient-to-br from-brandMuted to-white">
                 <div className="flex items-center justify-between">
@@ -863,6 +910,6 @@ export default function ImvoApp() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
