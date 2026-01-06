@@ -1,110 +1,176 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Client Quotation</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="quotation.css" />
-</head>
-<body>
-  <main class="page">
-    <div id="status" class="status status--hidden"></div>
-    <header class="page__top">
-      <div>
-        <p class="eyebrow">Invoice To</p>
-        <h1 id="client-name"></h1>
-        <div class="client-meta">
-          <p id="client-address"></p>
-          <p id="client-email"></p>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+
+  <div class="app">
+    <header class="topbar no-print">
+      <div class="brandMark">
+        <div class="brandDot"></div>
+        <div>
+          <div class="brandName">IMAGICITY</div>
+          <div class="brandTag">Quotation Preview Template</div>
         </div>
       </div>
-      <div class="logo-block">
-        <div class="logo-accent">INVO</div>
-        <div class="logo-main">ICE</div>
+
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" id="btnPrint" type="button">Print</button>
+        <button class="btn btn-primary" id="btnDownload" type="button">Download PDF</button>
       </div>
     </header>
 
-    <section class="info-row">
-      <div class="card card--compact">
-        <h3>Term &amp; Conditions</h3>
-        <ul id="terms-list" class="bullet-list"></ul>
-      </div>
-      <div class="card card--compact">
-        <h3>Find Us for More Information</h3>
-        <ul class="contact-list">
-          <li>
-            <span class="label">Phone</span>
-            <span id="contact-phone"></span>
-          </li>
-          <li>
-            <span class="label">Email</span>
-            <span id="contact-email"></span>
-          </li>
-          <li>
-            <span class="label">Location</span>
-            <span id="contact-address"></span>
-          </li>
-        </ul>
-      </div>
-    </section>
+    <main class="stage">
+      <section class="paperWrap">
+        <div class="paper" id="quoteRoot">
+          <div class="paperInner">
 
-    <section class="quotation" id="quotation">
-      <div class="quotation__header">
-        <div>
-          <h2>Quotation Details</h2>
-          <p class="muted" id="quotation-date"></p>
-        </div>
-        <button id="download-btn" class="download" disabled>Download PDF</button>
-      </div>
-      <div class="table">
-        <div class="table__row table__row--head">
-          <div>Item Description</div>
-          <div>Qty.</div>
-          <div>Unit Price</div>
-          <div>Amount</div>
-        </div>
-        <div id="items-body"></div>
-        <div class="table__row table__row--footer">
-          <div></div><div></div>
-          <div class="label">Subtotal</div>
-          <div id="subtotal"></div>
-        </div>
-        <div class="table__row table__row--footer">
-          <div></div><div></div>
-          <div class="label">Tax</div>
-          <div id="tax"></div>
-        </div>
-        <div class="table__row table__row--footer total-row">
-          <div></div><div></div>
-          <div class="label">Total</div>
-          <div id="total"></div>
-        </div>
-      </div>
-    </section>
+            <div class="paperHeader avoid-break">
+              <div class="company">
+                <div class="logoBox">
+                  <div class="logoGlyph">
+                    <span class="logoGlyphInner"></span>
+                  </div>
+                  <div class="companyText">
+                    <div class="companyName" id="companyName"></div>
+                    <div class="companyMeta" id="companyMeta"></div>
+                  </div>
+                </div>
+              </div>
 
-    <footer class="footer">
-      <div>
-        <p class="muted">Prepared by</p>
-        <p id="prepared-by" class="footer__name"></p>
-      </div>
-      <div class="invoice-meta">
-        <p>No. Invoice: <strong id="invoice-number"></strong></p>
-        <p>Due Date: <strong id="due-date"></strong></p>
-      </div>
-    </footer>
-  </main>
+              <div class="docMeta">
+                <div class="docTitle">QUOTATION</div>
+                <div class="metaGrid">
+                  <div class="metaItem">
+                    <div class="metaLabel">Quotation No.</div>
+                    <div class="metaValue mono" id="quoteNumber"></div>
+                  </div>
+                  <div class="metaItem">
+                    <div class="metaLabel">Issue Date</div>
+                    <div class="metaValue" id="issueDate"></div>
+                  </div>
+                  <div class="metaItem">
+                    <div class="metaLabel">Valid Until</div>
+                    <div class="metaValue" id="validUntil"></div>
+                  </div>
+                  <div class="metaItem">
+                    <div class="metaLabel">Currency</div>
+                    <div class="metaValue" id="currency"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-  <script id="firebase-config" type="application/json">
-    {
-      "apiKey": "YOUR_FIREBASE_API_KEY",
-      "authDomain": "YOUR_FIREBASE_AUTH_DOMAIN",
-      "projectId": "YOUR_FIREBASE_PROJECT_ID"
-    }
-  </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js" integrity="sha512-YcsIPZx1bM5GxQbrrf5gkP7FpC18JNpDutVdGsPV1oDttYVOlJawVSNlEInxjeaUp43EIBosHuLl5EJo7N2zOg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script type="module" src="quotation.js"></script>
-</body>
-</html>
+            <div class="divider"></div>
+
+            <div class="clientBlock avoid-break">
+              <div class="card">
+                <div class="cardTitle">Bill To</div>
+                <div class="clientName" id="clientName"></div>
+                <div class="muted" id="clientBrand"></div>
+                <div class="addr" id="clientAddress"></div>
+
+                <div class="pillRow">
+                  <span class="pill" id="gstRegisteredPill"></span>
+                  <span class="pill pill-soft" id="stateCodePill"></span>
+                </div>
+
+                <div class="kvRow">
+                  <div class="kv">
+                    <div class="kvLabel">Email</div>
+                    <div class="kvValue" id="clientEmail"></div>
+                  </div>
+                  <div class="kv">
+                    <div class="kvLabel">Phone</div>
+                    <div class="kvValue" id="clientPhone"></div>
+                  </div>
+                </div>
+
+                <div class="kvRow">
+                  <div class="kv">
+                    <div class="kvLabel">GSTIN</div>
+                    <div class="kvValue mono" id="clientGstin"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tableWrap">
+              <table class="itemsTable">
+                <thead>
+                  <tr>
+                    <th class="col-sno">#</th>
+                    <th>Description</th>
+                    <th class="col-unit">Unit</th>
+                    <th class="col-qty">Qty</th>
+                    <th class="col-rate">Rate</th>
+                    <th class="col-tax">GST</th>
+                    <th class="col-amt">Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="itemsBody"></tbody>
+              </table>
+            </div>
+
+            <div class="summaryRow avoid-break">
+              <div></div>
+              <div class="card card-accent">
+                <div class="cardTitle">Summary</div>
+
+                <div class="sumLine">
+                  <span class="muted">Subtotal</span>
+                  <span class="mono" id="subTotal"></span>
+                </div>
+
+                <div class="sumLine" id="discountLine">
+                  <span class="muted" id="discountLabel"></span>
+                  <span class="mono" id="discountValue"></span>
+                </div>
+
+                <div class="sumLine">
+                  <span class="muted">Tax</span>
+                  <span class="mono" id="taxTotal"></span>
+                </div>
+
+                <div class="divider soft"></div>
+
+                <div class="grand">
+                  <div class="grandLabel">Grand Total</div>
+                  <div class="grandValue mono" id="grandTotal"></div>
+                </div>
+
+                <div class="amountWords" id="amountWords"></div>
+              </div>
+            </div>
+
+            <div class="notesGrid">
+              <div class="noteCard avoid-break">
+                <div class="noteTitle">Notes</div>
+                <div class="noteText" id="notes"></div>
+              </div>
+
+              <div class="noteCard avoid-break">
+                <div class="noteTitle">Terms</div>
+                <ul class="termsList" id="terms"></ul>
+              </div>
+            </div>
+
+            <div class="paperFooter avoid-break">
+              <div class="signBlock">
+                <div class="signFor">For <span id="signCompany"></span></div>
+                <div class="signLine"></div>
+                <div class="signMeta">Authorized Signatory</div>
+              </div>
+
+              <div class="footerMeta">
+                <div class="footerLine">This is a system generated quotation.</div>
+                <div class="footerLine muted" id="footerContact"></div>
+              </div>
+            </div>
+
+          </div>
+          <div class="footerBar"></div>
+        </div>
+      </section>
+    </main>
+  </div>
