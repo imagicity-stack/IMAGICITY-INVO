@@ -737,22 +737,14 @@ export default function ImvoApp() {
       {clientDetailOpen && selectedClient && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="absolute right-4 top-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                aria-label="Edit client"
-                onClick={() => openEditClient(selectedClient)}
-                className="rounded-full bg-white/80 px-3 py-1 text-sm font-semibold text-brandCharcoal shadow"
-              >
-                Edit
-              </button>
+            <div className="absolute right-4 top-4">
               <button
                 type="button"
                 aria-label="Close client detail"
                 onClick={() => setClientDetailOpen(false)}
-                className="rounded-full bg-white/80 px-3 py-1 text-sm font-semibold text-brandCharcoal shadow"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-lg font-semibold text-brandCharcoal shadow"
               >
-                Close
+                ×
               </button>
             </div>
             <div className="card bg-white shadow-2xl">
