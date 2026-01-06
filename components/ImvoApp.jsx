@@ -13,6 +13,7 @@ import { archiveClient, deleteClient, fetchClients, restoreClient } from '../lib
 import { app, db } from '../lib/firebase';
 import ServicesSection from '../src/components/services/ServicesSection';
 import { listServices } from '../src/lib/services/serviceService';
+import QuotationSection from '../src/components/quotations/QuotationSection';
 
 const navItems = [
   { key: 'dashboard', label: 'Dashboard', icon: '/dashboard.svg' },
@@ -205,7 +206,6 @@ export default function ImvoApp() {
   const [servicesLoading, setServicesLoading] = useState(false);
   const [servicesError, setServicesError] = useState('');
   const [invoices, setInvoices] = useState([]);
-  const [quotations, setQuotations] = useState([]);
 
   const [authReady, setAuthReady] = useState(false);
 
@@ -217,12 +217,6 @@ export default function ImvoApp() {
     status: 'Pending',
   });
 
-  const [quoteForm, setQuoteForm] = useState({
-    client: '',
-    service: '',
-    amount: 0,
-    status: 'Draft',
-  });
 
   const [signingOut, setSigningOut] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -361,10 +355,6 @@ export default function ImvoApp() {
       setInvoiceForm((prev) => ({ ...prev, client: clients[0].legalName }));
     }
 
-    if (clients.length && !quoteForm.client) {
-      setQuoteForm((prev) => ({ ...prev, client: clients[0].legalName }));
-    }
-
     if (clients.length && invoices.length === 0) {
       const today = new Date();
       const seededFromClients = clients.slice(0, 3).map((client, idx) => {
@@ -380,18 +370,7 @@ export default function ImvoApp() {
       });
       setInvoices(seededFromClients);
     }
-
-    if (clients.length && quotations.length === 0) {
-      const seededQuotes = clients.slice(0, 2).map((client, idx) => ({
-        id: `QTE-${2058 + idx}`,
-        client: client.legalName,
-        service: services[idx]?.name || services[0]?.name || 'Service',
-        amount: 2400 + idx * 200,
-        status: idx % 2 === 0 ? 'Sent' : 'Draft',
-      }));
-      setQuotations(seededQuotes);
-    }
-  }, [clients, invoiceForm.client, quoteForm.client, invoices.length, quotations.length, selectedClient, services]);
+  }, [clients, invoiceForm.client, invoices.length, selectedClient, services]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -420,15 +399,7 @@ export default function ImvoApp() {
         amount: Number(services[0].rate || prev.amount),
       }));
     }
-
-    if (services.length && !quoteForm.service) {
-      setQuoteForm((prev) => ({
-        ...prev,
-        service: services[0].name,
-        amount: Number(services[0].rate || prev.amount),
-      }));
-    }
-  }, [services, invoiceForm.service, quoteForm.service]);
+  }, [services, invoiceForm.service]);
 
   const handleInvoiceSubmit = (e) => {
     e.preventDefault();
@@ -440,22 +411,6 @@ export default function ImvoApp() {
   const handleInvoiceServiceChange = (serviceName) => {
     const match = services.find((service) => service.name === serviceName);
     setInvoiceForm((prev) => ({
-      ...prev,
-      service: serviceName,
-      amount: match ? Number(match.rate || prev.amount) : prev.amount,
-    }));
-  };
-
-  const handleQuoteSubmit = (e) => {
-    e.preventDefault();
-    if (!quoteForm.client) return;
-    const nextId = `QTE-${2060 + quotations.length}`;
-    setQuotations([{ ...quoteForm, id: nextId }, ...quotations]);
-  };
-
-  const handleQuoteServiceChange = (serviceName) => {
-    const match = services.find((service) => service.name === serviceName);
-    setQuoteForm((prev) => ({
       ...prev,
       service: serviceName,
       amount: match ? Number(match.rate || prev.amount) : prev.amount,
@@ -785,27 +740,6 @@ export default function ImvoApp() {
                 <div className="grid gap-4 lg:grid-cols-2">
                   <div className="card">
                     <div className="section-title mb-4">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandSecondary/30 text-brandCharcoal">💹</span>
-                      <span>Pipeline snapshot</span>
-                    </div>
-                    <div className="space-y-4">
-                      {quotations.map((quote) => (
-                        <div key={quote.id} className="flex items-center justify-between rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3">
-                          <div>
-                            <p className="font-semibold">{quote.client}</p>
-                            <p className="text-sm text-gray-500">{quote.service}</p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Pill tone="secondary">{quote.status}</Pill>
-                            <p className="font-semibold text-brandCharcoal">${quote.amount.toLocaleString()}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="card">
-                    <div className="section-title mb-4">
                       <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandPrimary/10 text-brandPrimary">⏳</span>
                       <span>Upcoming due dates</span>
                     </div>
@@ -933,97 +867,9 @@ export default function ImvoApp() {
 
             {active === 'quotation' && (
               <SectionWrapper>
-            <SectionHeader icon="/quotation.svg" title="Quotations" />
-            <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
-              <form onSubmit={handleQuoteSubmit} className="card space-y-4">
-                <div className="flex items-start justify-between">
-                  <p className="text-lg font-semibold">Send quotation</p>
-                  <Pill tone="secondary">Shareable</Pill>
-                </div>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <label className="text-sm font-semibold text-gray-600">
-                    Client
-                    <select
-                      className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                      disabled={!clients.length}
-                      value={quoteForm.client}
-                      onChange={(e) => setQuoteForm({ ...quoteForm, client: e.target.value })}
-                    >
-                      {!clients.length && <option>No clients yet</option>}
-                      {clients.map((client) => (
-                        <option key={client.id || client.legalName}>{client.legalName}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-sm font-semibold text-gray-600">
-                    Service
-                    <select
-                      className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                      value={quoteForm.service}
-                      onChange={(e) => handleQuoteServiceChange(e.target.value)}
-                      disabled={!services.length}
-                    >
-                      {!services.length && <option>No services yet</option>}
-                      {services.map((service) => (
-                        <option key={service.serviceId}>{service.name}</option>
-                      ))}
-                    </select>
-                    {servicesLoading && <p className="text-xs text-gray-500">Loading services…</p>}
-                    {servicesError && <p className="text-xs text-rose-600">{servicesError}</p>}
-                  </label>
-                  <label className="text-sm font-semibold text-gray-600">
-                    Amount (USD)
-                    <input
-                      type="number"
-                      className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                      value={quoteForm.amount}
-                      onChange={(e) => setQuoteForm({ ...quoteForm, amount: Number(e.target.value) })}
-                    />
-                  </label>
-                  <label className="text-sm font-semibold text-gray-600">
-                    Status
-                    <select
-                      className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                      value={quoteForm.status}
-                      onChange={(e) => setQuoteForm({ ...quoteForm, status: e.target.value })}
-                    >
-                      <option>Draft</option>
-                      <option>Sent</option>
-                      <option>Accepted</option>
-                    </select>
-                  </label>
-                </div>
-                <button
-                  type="submit"
-                  className="rounded-full bg-brandSecondary px-5 py-2 text-sm font-semibold text-brandCharcoal shadow-lg shadow-brandSecondary/30 transition hover:-translate-y-0.5"
-                >
-                  Save quotation
-                </button>
-              </form>
-
-              <div className="card space-y-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-lg font-semibold">Quotes pipeline</p>
-                  <Pill tone="muted">Preview</Pill>
-                </div>
-                <div className="space-y-3">
-                  {quotations.map((quote) => (
-                    <div key={quote.id} className="flex items-center justify-between rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3">
-                      <div>
-                        <p className="font-semibold">{quote.id}</p>
-                        <p className="text-sm text-gray-500">{quote.client}</p>
-                      </div>
-                      <div className="text-right">
-                        <Pill tone="secondary">{quote.status}</Pill>
-                        <p className="mt-1 font-semibold text-brandCharcoal">${quote.amount.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </SectionWrapper>
-        )}
+                <QuotationSection />
+              </SectionWrapper>
+            )}
 
             {active === 'clients' && (
               <SectionWrapper>
