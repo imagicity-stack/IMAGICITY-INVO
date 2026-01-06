@@ -225,6 +225,7 @@ export default function ImvoApp() {
   });
 
   const [signingOut, setSigningOut] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     const auth = getAuth(app);
@@ -268,6 +269,7 @@ export default function ImvoApp() {
       console.error('Sign out failed', error);
       setSigningOut(false);
     }
+    setDrawerOpen(false);
   };
 
   const handleArchiveClient = async (client) => {
@@ -509,24 +511,32 @@ export default function ImvoApp() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f6f7fb] via-white to-[#eef2ff]">
       <div className="mx-auto max-w-[1500px] px-4 py-6">
-        <header className="sticky top-4 z-30 mb-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-gray-100 bg-white/90 px-5 py-4 shadow-lg shadow-brandPrimary/5 backdrop-blur">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brandPrimary to-brandSecondary text-lg font-bold text-white shadow-lg shadow-brandPrimary/20">
-                IM
-              </span>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">Imagicity</p>
-                <p className="text-lg font-bold text-brandCharcoal">INVO CRM</p>
-              </div>
+        <header className="z-30 mb-6 flex items-center justify-between gap-3 rounded-3xl border border-gray-100 bg-white px-4 py-3 shadow-lg shadow-brandPrimary/5 md:sticky md:top-4 md:flex md:flex-wrap md:gap-4 md:bg-white/90 md:px-5 md:py-4 md:backdrop-blur">
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brandPrimary to-brandSecondary text-lg font-bold text-white shadow-lg shadow-brandPrimary/20">
+              IM
+            </span>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">Imagicity</p>
+              <p className="text-lg font-bold text-brandCharcoal">INVO CRM</p>
             </div>
-            <div className="min-w-[240px] space-y-1 rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3 shadow-inner shadow-white">
+          </div>
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="hidden min-w-[240px] space-y-1 rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3 shadow-inner shadow-white md:block">
               <p className="text-xs font-semibold uppercase tracking-wide text-brandPrimary">Hello, Admin 👋</p>
               <p className="text-sm font-bold text-brandCharcoal">Welcome back to your Imvo workspace</p>
               <p className="text-xs text-gray-600">Track performance, billing, and learning momentum at a glance.</p>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-gray-200 bg-white text-brandCharcoal shadow-sm transition hover:-translate-y-0.5 md:hidden"
+              aria-label="Open navigation drawer"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor" className="h-5 w-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+              </svg>
+            </button>
             <span className="hidden items-center gap-2 rounded-full bg-brandPrimary/10 px-3 py-1 text-xs font-semibold text-brandPrimary md:inline-flex">
               <span className="inline-flex h-2 w-2 rounded-full bg-brandAccent" aria-hidden />
               Admin session
@@ -534,7 +544,7 @@ export default function ImvoApp() {
             <button
               type="button"
               onClick={() => setAccountOpen(true)}
-              className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-brandCharcoal shadow hover:-translate-y-0.5"
+              className="hidden items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-brandCharcoal shadow hover:-translate-y-0.5 md:flex"
             >
               <span className="inline-flex h-2 w-2 rounded-full bg-brandSecondary" aria-hidden />
               Account
@@ -543,15 +553,87 @@ export default function ImvoApp() {
               type="button"
               onClick={handleSignOut}
               disabled={signingOut}
-              className="flex items-center gap-2 rounded-full bg-brandCharcoal px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/20 transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brandPrimary disabled:cursor-not-allowed disabled:opacity-70"
+              className="hidden items-center gap-2 rounded-full bg-brandCharcoal px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/20 transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brandPrimary disabled:cursor-not-allowed disabled:opacity-70 md:flex"
             >
               <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" aria-hidden />
               {signingOut ? 'Signing out…' : 'Sign out'}
             </button>
           </div>
         </header>
+
+        {drawerOpen && (
+          <div className="fixed inset-0 z-40 flex md:hidden" role="dialog" aria-modal="true">
+            <div className="absolute inset-0 bg-black/30" onClick={() => setDrawerOpen(false)} aria-hidden />
+            <div className="relative ml-auto flex h-full w-80 max-w-full flex-col gap-4 rounded-l-3xl border border-gray-100 bg-white px-5 py-6 shadow-2xl shadow-brandPrimary/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brandPrimary text-sm font-bold text-white shadow-lg shadow-brandPrimary/20">
+                    IM
+                  </span>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-gray-500">Imagicity</p>
+                    <p className="text-base font-bold text-brandCharcoal">INVO CRM</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDrawerOpen(false)}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-gray-200 bg-white text-sm font-semibold text-brandCharcoal shadow-sm"
+                  aria-label="Close navigation drawer"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="grid gap-3">
+                {navItems.map((item) => {
+                  const isActive = active === item.key;
+                  return (
+                    <button
+                      key={item.key}
+                      onClick={() => {
+                        setActive(item.key);
+                        setDrawerOpen(false);
+                      }}
+                      className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                        isActive
+                          ? 'border-brandPrimary bg-gradient-to-r from-brandPrimary to-brandSecondary text-white shadow-brandPrimary/30'
+                          : 'border-gray-200 bg-white text-brandCharcoal'
+                      }`}
+                    >
+                      <span className="flex items-center gap-3">
+                        <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${isActive ? 'bg-white/15' : 'bg-brandPrimary/10'}`}>
+                          <Image src={item.icon} alt="" width={16} height={16} />
+                        </span>
+                        {item.label}
+                      </span>
+                      {isActive && <span className="rounded-full bg-white/20 px-2 py-1 text-[11px]">Active</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-auto space-y-3 border-t border-gray-100 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setAccountOpen(true)}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-brandCharcoal shadow-sm"
+                >
+                  Account settings
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brandCharcoal px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/20 transition disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {signingOut ? 'Signing out…' : 'Sign out'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className={`grid gap-6 ${gridCols}`}>
-          <aside className="lg:sticky lg:top-6">
+          <aside className="hidden lg:sticky lg:top-6 lg:block">
             <div className="card space-y-6 border border-white/80 bg-white/90 shadow-xl shadow-brandPrimary/5">
               <div className="flex items-center justify-center">
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brandPrimary text-lg font-bold text-white shadow-lg shadow-brandPrimary/25">IM</span>
