@@ -12,87 +12,132 @@
 <body>
   <main class="page">
     <div id="status" class="status status--hidden"></div>
-    <header class="page__top">
-      <div>
-        <p class="eyebrow">Invoice To</p>
-        <h1 id="client-name"></h1>
-        <div class="client-meta">
-          <p id="client-address"></p>
-          <p id="client-email"></p>
+
+    <header class="page__header">
+      <div class="brand">
+        <div class="brand__mark">Imagicity</div>
+        <p id="org-tagline" class="muted">Smart Experiences, Thoughtful Solutions</p>
+        <div class="brand__contact">
+          <p id="org-address"></p>
+          <p id="org-phone"></p>
+          <p id="org-email"></p>
+          <p id="org-website"></p>
         </div>
       </div>
-      <div class="logo-block">
-        <div class="logo-accent">INVO</div>
-        <div class="logo-main">ICE</div>
+      <div class="meta">
+        <div class="meta__title">
+          <span class="eyebrow">Quotation</span>
+          <h1>Investment Outline</h1>
+          <p class="muted">Structured for clarity and confidence</p>
+        </div>
+        <div class="meta__grid">
+          <div><span class="label">Quotation #</span><strong id="invoice-number"></strong></div>
+          <div><span class="label">Issued</span><strong id="quotation-date"></strong></div>
+          <div><span class="label">Valid Until</span><strong id="due-date"></strong></div>
+          <div><span class="label">Prepared By</span><strong id="prepared-by"></strong></div>
+        </div>
       </div>
     </header>
 
-    <section class="info-row">
-      <div class="card card--compact">
-        <h3>Term &amp; Conditions</h3>
-        <ul id="terms-list" class="bullet-list"></ul>
-      </div>
-      <div class="card card--compact">
-        <h3>Find Us for More Information</h3>
-        <ul class="contact-list">
-          <li>
-            <span class="label">Phone</span>
-            <span id="contact-phone"></span>
-          </li>
-          <li>
+    <section class="section">
+      <div class="card">
+        <p class="eyebrow">Client Details</p>
+        <h2 id="client-name"></h2>
+        <div class="client-grid">
+          <div>
+            <span class="label">Address</span>
+            <p id="client-address" class="muted"></p>
+          </div>
+          <div>
             <span class="label">Email</span>
-            <span id="contact-email"></span>
-          </li>
-          <li>
+            <p id="client-email" class="muted"></p>
+          </div>
+          <div>
+            <span class="label">Phone</span>
+            <p id="client-phone" class="muted"></p>
+          </div>
+        </div>
+      </div>
+      <div class="card card--info">
+        <div class="info-row">
+          <div>
+            <span class="label">Contact</span>
+            <p id="contact-email" class="muted"></p>
+          </div>
+          <div>
+            <span class="label">Phone</span>
+            <p id="contact-phone" class="muted"></p>
+          </div>
+          <div>
             <span class="label">Location</span>
-            <span id="contact-address"></span>
-          </li>
-        </ul>
+            <p id="contact-address" class="muted"></p>
+          </div>
+        </div>
+        <button id="download-btn" class="download" disabled>Preparing PDF…</button>
       </div>
     </section>
 
-    <section class="quotation" id="quotation">
-      <div class="quotation__header">
+    <section class="section">
+      <div class="section__header">
         <div>
-          <h2>Quotation Details</h2>
-          <p class="muted" id="quotation-date"></p>
+          <p class="eyebrow">Quotation Items</p>
+          <h3>Breakdown of deliverables</h3>
         </div>
-        <button id="download-btn" class="download" disabled>Download PDF</button>
+        <p id="notes-preview" class="muted"></p>
       </div>
       <div class="table">
         <div class="table__row table__row--head">
-          <div>Item Description</div>
+          <div>Item &amp; Description</div>
           <div>Qty.</div>
           <div>Unit Price</div>
+          <div>Discount</div>
+          <div>GST</div>
           <div>Amount</div>
         </div>
         <div id="items-body"></div>
         <div class="table__row table__row--footer">
-          <div></div><div></div>
+          <div></div><div></div><div></div><div></div>
           <div class="label">Subtotal</div>
           <div id="subtotal"></div>
         </div>
         <div class="table__row table__row--footer">
-          <div></div><div></div>
-          <div class="label">Tax</div>
-          <div id="tax"></div>
+          <div></div><div></div><div></div><div></div>
+          <div class="label">Discount</div>
+          <div id="discount"></div>
+        </div>
+        <div class="table__row table__row--footer">
+          <div></div><div></div><div></div><div></div>
+          <div class="label">GST</div>
+          <div id="gst"></div>
         </div>
         <div class="table__row table__row--footer total-row">
-          <div></div><div></div>
-          <div class="label">Total</div>
+          <div></div><div></div><div></div><div></div>
+          <div class="label">Grand Total</div>
           <div id="total"></div>
         </div>
       </div>
     </section>
 
+    <section class="section section--columns">
+      <div class="card">
+        <p class="eyebrow">Notes</p>
+        <ul id="notes-list" class="bullet-list"></ul>
+      </div>
+      <div class="card">
+        <p class="eyebrow">Terms &amp; Conditions</p>
+        <ul id="terms-list" class="bullet-list"></ul>
+      </div>
+    </section>
+
     <footer class="footer">
       <div>
-        <p class="muted">Prepared by</p>
-        <p id="prepared-by" class="footer__name"></p>
+        <p class="muted">Authorized for Imagicity</p>
+        <button id="signature-btn" class="signature-btn">Add Signature</button>
+        <div class="signature-line"></div>
       </div>
-      <div class="invoice-meta">
-        <p>No. Invoice: <strong id="invoice-number"></strong></p>
-        <p>Due Date: <strong id="due-date"></strong></p>
+      <div class="footer__notes">
+        <p class="muted">Need adjustments? Reach us anytime.</p>
+        <p class="footer__highlight">connect@imagicity.in • +91 222 289 578</p>
       </div>
     </footer>
   </main>
@@ -104,7 +149,7 @@
       "projectId": "YOUR_FIREBASE_PROJECT_ID"
     }
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js" integrity="sha512-YcsIPZx1bM5GxQbrrf5gkP7FpC18JNpDutVdGsPV1oDttYVOlJawVSNlEInxjeaUp43EIBosHuLl5EJo7N2zOg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js" integrity="sha512-YcsIPZx1bM5Gxbrrf5gkP7FpC18JNpDutVdGsPV1oDttYVOlJawVSNlEInxjeaUp43EIBosHuLl5EJo7N2zOg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script type="module" src="quotation.js"></script>
 </body>
 </html>

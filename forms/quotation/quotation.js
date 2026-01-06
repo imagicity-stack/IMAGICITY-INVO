@@ -1,6 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { collection, doc, getDoc, getDocs, getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
+const defaultOrg = {
+  address: "Hazaribagh, Jharkhand",
+  email: "connect@imagicity.in",
+  phone: "9122289578",
+  website: "www.imagicity.in",
+  tagline: "Smart Experiences, Thoughtful Solutions",
+};
+
 let downloadedFileName = "quotation.pdf";
 let quotationLoaded = false;
 
@@ -71,18 +79,28 @@ async function fetchQuotation(db, quotationId) {
   const itemsSnapshot = await getDocs(collection(db, "quotations", quotationId, "items"));
   const items = itemsSnapshot.docs.map((itemSnap) => itemSnap.data());
 
-  const subtotalFromItems = items.reduce((sum, item) => sum + (item.lineSubTotal ?? item.quantity * (item.rateSnapshot || 0)), 0);
-  const taxFromItems = items.reduce((sum, item) => sum + (item.lineTax || 0), 0);
-  const totalFromItems = subtotalFromItems + taxFromItems;
+  const subtotalFromItems = items.reduce(
+    (sum, item) => sum + (item.lineSubTotal ?? (item.quantity || 0) * (item.rateSnapshot || 0)),
+    0
+  );
+  const gstFromItems = items.reduce((sum, item) => sum + (item.lineTax || item.tax || 0), 0);
+  const discountFromItems = items.reduce((sum, item) => sum + (item.discountSnapshot || item.discountAmount || 0), 0);
 
   const currency = data.currency || "USD";
+  const discount = data.discountTotal ?? data.discountValue ?? data.discount ?? discountFromItems;
+  const subtotal = data.subTotal ?? subtotalFromItems;
+  const gst = data.gstTotal ?? data.taxTotal ?? gstFromItems;
+  const total = data.grandTotal ?? data.total ?? subtotal - discount + gst;
 
   return {
+    org: {
+      ...defaultOrg,
+    },
     client: {
       name: data.clientSnapshot?.brandName || data.clientSnapshot?.legalName || "Client",
       address: buildAddress(data.clientSnapshot?.billingAddress),
       email: data.clientSnapshot?.email || "",
-      phone: data.clientSnapshot?.phone || "",
+      phone: data.clientSnapshot?.phone || data.clientSnapshot?.billingAddress?.phone || "",
     },
     quotation: {
       number: data.quoteNumber || data.quoteId || quotationId,
@@ -97,23 +115,48 @@ async function fetchQuotation(db, quotationId) {
       address: buildAddress(data.clientSnapshot?.billingAddress),
     },
     terms: data.terms || "",
+    notes: data.notes || data.note || "Thank you for considering Imagicity.",
     items,
     totals: {
-      subtotal: data.subTotal ?? subtotalFromItems,
-      tax: data.taxTotal ?? taxFromItems,
-      total: data.grandTotal ?? totalFromItems,
+      subtotal,
+      discount,
+      gst,
+      total,
     },
   };
 }
 
+function renderList(listEl, value) {
+  listEl.innerHTML = "";
+  const normalized = Array.isArray(value)
+    ? value
+    : String(value)
+        .split(/\r?\n/)
+        .map((term) => term.trim())
+        .filter(Boolean);
+
+  normalized.forEach((entry) => {
+    const li = document.createElement("li");
+    li.textContent = entry;
+    listEl.appendChild(li);
+  });
+}
+
 function renderQuotation(data) {
-  const { client, quotation, contact, terms, items, totals } = data;
+  const { org, client, quotation, contact, terms, notes, items, totals } = data;
+
+  document.getElementById("org-tagline").textContent = org.tagline;
+  document.getElementById("org-address").textContent = org.address;
+  document.getElementById("org-email").textContent = org.email;
+  document.getElementById("org-phone").textContent = `+91 ${org.phone}`;
+  document.getElementById("org-website").textContent = org.website;
 
   document.getElementById("client-name").textContent = client.name;
-  document.getElementById("client-address").textContent = client.address;
-  document.getElementById("client-email").textContent = client.email;
+  document.getElementById("client-address").textContent = client.address || "—";
+  document.getElementById("client-email").textContent = client.email || "—";
+  document.getElementById("client-phone").textContent = client.phone || "—";
 
-  document.getElementById("quotation-date").textContent = `Issued: ${formatDate(quotation.issueDate)}`;
+  document.getElementById("quotation-date").textContent = formatDate(quotation.issueDate);
   document.getElementById("invoice-number").textContent = quotation.number;
   document.getElementById("due-date").textContent = formatDate(quotation.dueDate);
   document.getElementById("prepared-by").textContent = quotation.preparedBy;
@@ -122,42 +165,40 @@ function renderQuotation(data) {
   document.getElementById("contact-email").textContent = contact.email || "—";
   document.getElementById("contact-address").textContent = contact.address || "—";
 
-  const termsList = document.getElementById("terms-list");
-  termsList.innerHTML = "";
-  const normalizedTerms = Array.isArray(terms)
-    ? terms
-    : String(terms)
-        .split(/\r?\n/)
-        .map((term) => term.trim())
-        .filter(Boolean);
+  document.getElementById("notes-preview").textContent = Array.isArray(notes)
+    ? notes[0] || ""
+    : String(notes).split(/\r?\n/)[0] || "";
 
-  normalizedTerms.forEach((term) => {
-    const li = document.createElement("li");
-    li.textContent = term;
-    termsList.appendChild(li);
-  });
+  renderList(document.getElementById("terms-list"), terms || "");
+  renderList(document.getElementById("notes-list"), notes || "");
 
   const itemsBody = document.getElementById("items-body");
   itemsBody.innerHTML = "";
   items.forEach((item) => {
-    const lineSubtotal = item.lineSubTotal ?? item.quantity * (item.rateSnapshot || 0);
-    const amount = item.lineTotal ?? lineSubtotal + (item.lineTax || 0);
+    const lineSubtotal = item.lineSubTotal ?? (item.quantity || 0) * (item.rateSnapshot || 0);
+    const discountValue = item.discountSnapshot || item.discountAmount || 0;
+    const gstValue = item.lineTax || item.tax || 0;
+    const amount = item.lineTotal ?? lineSubtotal - discountValue + gstValue;
+
     const row = document.createElement("div");
     row.className = "table__row table__row--body";
     row.innerHTML = `
       <div>
-        <div>${item.nameSnapshot}</div>
+        <h4>${item.nameSnapshot}</h4>
         ${item.descriptionSnapshot ? `<p class="muted">${item.descriptionSnapshot}</p>` : ""}
       </div>
       <div>${item.quantity}</div>
       <div>${formatCurrency(item.rateSnapshot, quotation.currency)}</div>
+      <div>${discountValue ? formatCurrency(discountValue, quotation.currency) : "—"}</div>
+      <div>${gstValue ? formatCurrency(gstValue, quotation.currency) : "—"}</div>
       <div>${formatCurrency(amount, quotation.currency)}</div>
     `;
     itemsBody.appendChild(row);
   });
 
   document.getElementById("subtotal").textContent = formatCurrency(totals.subtotal, quotation.currency);
-  document.getElementById("tax").textContent = formatCurrency(totals.tax, quotation.currency);
+  document.getElementById("discount").textContent = formatCurrency(totals.discount, quotation.currency);
+  document.getElementById("gst").textContent = formatCurrency(totals.gst, quotation.currency);
   document.getElementById("total").textContent = formatCurrency(totals.total, quotation.currency);
 
   downloadedFileName = `${quotation.number}.pdf`;
