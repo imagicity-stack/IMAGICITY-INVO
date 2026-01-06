@@ -202,7 +202,7 @@ export default function QuotationForm({ initialData, onSubmit, onCancel, submitt
   }, [clientMode, selectedClient]);
 
   return (
-    <form onSubmit={(e) => handleSubmit(e)} className="mx-auto max-w-3xl space-y-4">
+    <form onSubmit={(e) => handleSubmit(e)} className="mx-auto max-w-2xl space-y-6">
       {formError && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{formError}</p>}
 
       <QuoteClientSelector

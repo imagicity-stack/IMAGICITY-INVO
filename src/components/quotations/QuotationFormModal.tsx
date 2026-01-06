@@ -16,8 +16,8 @@ export default function QuotationFormModal({ open, onClose, initialData, onSubmi
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-4xl overflow-y-auto rounded-3xl bg-white p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 sm:py-8">
+      <div className="w-full max-w-3xl rounded-3xl bg-white p-6 shadow-xl">
         <div className="flex items-center justify-between">
           <p className="text-2xl font-bold text-brandCharcoal">{initialData ? 'Edit quotation' : 'New quotation'}</p>
           <button
@@ -29,7 +29,7 @@ export default function QuotationFormModal({ open, onClose, initialData, onSubmi
           </button>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-4 max-h-[80vh] overflow-y-auto">
           <QuotationForm initialData={initialData} onSubmit={onSubmit} onCancel={onClose} submitting={submitting} />
         </div>
       </div>
