@@ -60,12 +60,32 @@ export default function QuotationDetailDrawer({
     const issueDate = renderDate(quotation.issueDate);
     const validUntil = renderDate(quotation.validUntil);
 
+    const imagicityContact = {
+      address: 'Hazaribagh, Jharkhand',
+      email: 'connect@imagicity.in',
+      phone: '9122289578',
+      website: 'www.imagicity.in',
+    };
+
+    const resolveDiscount = () => {
+      if (quotation.discountType === 'None') return 0;
+      if (quotation.discountType === 'Percent') {
+        return (quotation.subTotal * quotation.discountValue) / 100;
+      }
+      return quotation.discountValue;
+    };
+
+    const discountAmount = resolveDiscount();
+
     const itemRows = items
       .map(
         (item) => `
         <div class="row">
-          <div class="cell name">${item.nameSnapshot}</div>
-          <div class="cell center">${item.quantity} × ${item.unitLabelSnapshot}</div>
+          <div class="cell name">
+            <p class="title">${item.nameSnapshot}</p>
+            <p class="description">${item.descriptionSnapshot || ''}</p>
+          </div>
+          <div class="cell center">${item.quantity} ${item.unitLabelSnapshot}</div>
           <div class="cell right">${formatCurrency(item.rateSnapshot)}</div>
           <div class="cell right">${item.gstRateSnapshot}%</div>
           <div class="cell right">${formatCurrency(item.lineTotal)}</div>
@@ -77,103 +97,129 @@ export default function QuotationDetailDrawer({
       <div class="quote-pdf">
         <style>
           * { box-sizing: border-box; }
-          body, .quote-pdf { margin: 0; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; color: #e8ecff; }
-          .quote-pdf { width: 210mm; min-height: 297mm; padding: 32px; background: linear-gradient(180deg,#0f172a 0%,#0b1224 100%); position: relative; }
-          .badge { position: absolute; top: 24px; right: 24px; padding: 6px 12px; border-radius: 999px; background: linear-gradient(90deg,#38bdf8,#6366f1); font-weight: 700; font-size: 12px; }
-          .brand { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: #e2e8f0; }
-          .brand h1 { margin: 0; font-size: 26px; letter-spacing: 1px; text-transform: uppercase; }
-          .label { color: #94a3b8; font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; }
-          .muted { color: #cbd5e1; font-size: 14px; margin: 2px 0; }
-          .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(148,163,184,0.25); border-radius: 16px; padding: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.35); }
-          .two-col { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); }
-          .quote-header { display: flex; justify-content: space-between; align-items: center; margin: 18px 0; }
-          .quote-title { font-size: 20px; font-weight: 700; margin: 0; color: #f8fafc; }
-          .table { margin-top: 12px; border-radius: 16px; overflow: hidden; border: 1px solid rgba(148,163,184,0.35); }
-          .row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; background: rgba(148,163,184,0.06); }
-          .row:nth-child(even) { background: rgba(148,163,184,0.12); }
-          .header { background: linear-gradient(90deg,#38bdf8,#6366f1); color: #0f172a; font-weight: 700; }
+          body, .quote-pdf { margin: 0; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; color: #1f2937; }
+          .quote-pdf { width: 210mm; min-height: 297mm; padding: 26mm 22mm; background: #f6f7fb; position: relative; }
+          .page { background: #ffffff; border-radius: 16px; box-shadow: 0 12px 36px rgba(0,0,0,0.06); padding: 28px; min-height: 245mm; }
+          .header { display: flex; justify-content: space-between; gap: 16px; border-bottom: 4px solid #14b8a6; padding-bottom: 18px; }
+          .brand { display: flex; flex-direction: column; gap: 4px; }
+          .brand h1 { margin: 0; font-size: 26px; letter-spacing: 0.6px; color: #0f172a; }
+          .brand p { margin: 0; color: #64748b; }
+          .badge { align-self: flex-start; padding: 6px 12px; border-radius: 999px; background: linear-gradient(135deg,#14b8a6,#0ea5e9); color: #ffffff; font-weight: 700; font-size: 12px; letter-spacing: 0.5px; }
+          .eyebrow { color: #14b8a6; letter-spacing: 1px; text-transform: uppercase; font-size: 11px; margin: 0; }
+          .title { margin: 2px 0; font-weight: 700; color: #0f172a; }
+          .muted { color: #475569; margin: 2px 0; font-size: 13px; }
+          .section { margin-top: 18px; }
+          .section h3 { margin: 0 0 6px; color: #0f172a; }
+          .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; }
+          .card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; background: #fff; }
+          .label { color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+          .table { margin-top: 12px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+          .row { display: grid; grid-template-columns: 2fr 0.8fr 0.9fr 0.8fr 1fr; border-bottom: 1px solid #e2e8f0; background: #ffffff; }
+          .row:nth-child(even) { background: #f8fafc; }
+          .row.header { background: linear-gradient(135deg,#14b8a6,#0ea5e9); color: #fff; font-weight: 700; }
           .cell { padding: 12px 14px; font-size: 13px; color: inherit; }
-          .name { font-weight: 600; color: #f8fafc; }
+          .cell .description { margin: 4px 0 0; color: #64748b; font-weight: 400; font-size: 12px; }
           .center { text-align: center; }
           .right { text-align: right; }
-          .totals { margin-top: 18px; display: flex; justify-content: flex-end; }
-          .totals .summary { width: 320px; border-radius: 14px; overflow: hidden; border: 1px solid rgba(148,163,184,0.35); }
-          .totals .line { display: flex; justify-content: space-between; padding: 12px 14px; background: rgba(148,163,184,0.06); color: #e2e8f0; }
-          .totals .line:nth-child(2n) { background: rgba(148,163,184,0.12); }
-          .totals .line.total { background: linear-gradient(90deg,#38bdf8,#6366f1); color: #0f172a; font-weight: 800; font-size: 16px; }
-          .section-title { font-size: 14px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.6px; margin: 0 0 6px; }
-          .footer { margin-top: 28px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); }
-          .footer-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(148,163,184,0.25); border-radius: 16px; padding: 14px; color: #e2e8f0; min-height: 120px; }
+          .summary { margin-top: 12px; display: flex; justify-content: flex-end; }
+          .summary .totals { width: 340px; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #fff; }
+          .summary .line { display: flex; justify-content: space-between; padding: 10px 14px; color: #0f172a; border-bottom: 1px solid #e2e8f0; }
+          .summary .line:last-child { border-bottom: none; }
+          .summary .highlight { background: linear-gradient(135deg,#14b8a6,#0ea5e9); color: #fff; font-weight: 800; font-size: 15px; }
+          .notes-terms { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 12px; margin-top: 14px; }
+          .footer { margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; align-items: start; }
+          .signature { border: 1px dashed #14b8a6; border-radius: 12px; padding: 12px; background: #ecfeff; color: #0f172a; }
+          .signature button { margin-top: 10px; padding: 8px 12px; border-radius: 8px; border: none; background: #14b8a6; color: #fff; font-weight: 700; cursor: pointer; }
+          .footer-meta { text-align: right; color: #475569; }
+          .sticky-footer { position: absolute; bottom: 18px; left: 22mm; right: 22mm; display: flex; justify-content: space-between; color: #94a3b8; font-size: 12px; }
+          .page-break { page-break-inside: avoid; }
         </style>
 
-        <span class="badge">Quotation</span>
+        <div class="page">
+          <div class="header">
+            <div class="brand">
+              <p class="eyebrow">Quotation</p>
+              <h1>Imagicity</h1>
+              <p>${imagicityContact.address}</p>
+              <p>${imagicityContact.email} • ${imagicityContact.phone}</p>
+              <p>${imagicityContact.website}</p>
+            </div>
+            <div style="text-align:right;">
+              <span class="badge">${quotation.status}</span>
+              <p class="title" style="margin-top:10px;">${quotation.quoteNumber}</p>
+              <p class="muted">Issue Date: ${issueDate}</p>
+              <p class="muted">Valid Until: ${validUntil}</p>
+            </div>
+          </div>
 
-        <div class="brand">
-          <h1>Imagicity</h1>
-          <div style="text-align:right;">
-            <p class="section-title" style="margin-bottom:4px;">Prepared By</p>
-            <p class="quote-title" style="font-size:16px;">${quotation.clientSnapshot?.brandName || 'Sales Team'}</p>
-            <p class="muted">${quotation.clientSnapshot?.email || ''}</p>
+          <div class="section grid">
+            <div class="card">
+              <p class="label">Client</p>
+              <p class="title">${quotation.clientSnapshot?.legalName}</p>
+              <p class="muted">${quotation.clientSnapshot?.email || ''}</p>
+              <p class="muted">${quotation.clientSnapshot?.phone || ''}</p>
+              <p class="muted">${quotation.clientSnapshot?.billingAddress?.line1 || ''}</p>
+              <p class="muted">${quotation.clientSnapshot?.billingAddress?.city || ''}, ${quotation.clientSnapshot?.billingAddress?.state || ''} ${quotation.clientSnapshot?.billingAddress?.pincode || ''}</p>
+            </div>
+            <div class="card">
+              <p class="label">Prepared By</p>
+              <p class="title">${quotation.clientSnapshot?.brandName || 'Imagicity Team'}</p>
+              <p class="muted">${imagicityContact.email}</p>
+              <p class="muted">${imagicityContact.phone}</p>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>Quotation Items</h3>
+            <div class="table">
+              <div class="row header">
+                <div class="cell">Item</div>
+                <div class="cell center">Qty</div>
+                <div class="cell right">Rate</div>
+                <div class="cell right">GST</div>
+                <div class="cell right">Amount</div>
+              </div>
+              ${itemRows || '<div class="row"><div class="cell" style="grid-column: 1 / -1;">No items added</div></div>'}
+            </div>
+          </div>
+
+          <div class="section summary">
+            <div class="totals">
+              <div class="line"><span>Subtotal</span><span>${formatCurrency(quotation.subTotal)}</span></div>
+              <div class="line"><span>GST</span><span>${formatCurrency(quotation.taxTotal)}</span></div>
+              <div class="line"><span>Discount (${quotation.discountType}${quotation.discountType === 'Percent' ? ` ${quotation.discountValue}%` : ''})</span><span>- ${formatCurrency(discountAmount)}</span></div>
+              <div class="line highlight"><span>Grand Total</span><span>${formatCurrency(quotation.grandTotal)}</span></div>
+            </div>
+          </div>
+
+          <div class="section notes-terms">
+            <div class="card page-break">
+              <p class="label">Notes</p>
+              <p class="muted">${quotation.notes || '—'}</p>
+            </div>
+            <div class="card page-break">
+              <p class="label">Terms</p>
+              <p class="muted">${quotation.terms || '—'}</p>
+            </div>
+          </div>
+
+          <div class="footer">
+            <div class="signature">
+              <p class="title">Signature (Imagicity)</p>
+              <p class="muted">Authorized signatory for Imagicity</p>
+              <button type="button">Tap to Sign</button>
+            </div>
+            <div class="footer-meta">
+              <p>Phone: ${imagicityContact.phone}</p>
+              <p>Email: ${imagicityContact.email}</p>
+              <p>Address: ${imagicityContact.address}</p>
+            </div>
           </div>
         </div>
 
-        <div class="quote-header">
-          <div>
-            <p class="section-title">Quotation</p>
-            <p class="quote-title">${quotation.quoteNumber}</p>
-            <p class="muted">Issue: ${issueDate}</p>
-          </div>
-          <div class="card" style="min-width:220px;">
-            <p class="section-title">Client</p>
-            <p class="quote-title" style="font-size:16px;">${quotation.clientSnapshot?.legalName}</p>
-            <p class="muted">${quotation.clientSnapshot?.email || ''}</p>
-            <p class="muted">${quotation.clientSnapshot?.phone || ''}</p>
-          </div>
-        </div>
-
-        <div class="two-col">
-          <div class="card">
-            <p class="section-title">Bill To</p>
-            <p class="muted">${quotation.clientSnapshot?.billingAddress?.line1 || ''}</p>
-            <p class="muted">${quotation.clientSnapshot?.billingAddress?.city || ''}</p>
-            <p class="muted">${quotation.clientSnapshot?.billingAddress?.state || ''} ${quotation.clientSnapshot?.billingAddress?.pincode || ''}</p>
-            <p class="muted">${quotation.clientSnapshot?.billingAddress?.country || ''}</p>
-          </div>
-          <div class="card">
-            <p class="section-title">Validity</p>
-            <p class="muted">Valid until: ${validUntil}</p>
-            <p class="muted">Status: ${quotation.status}</p>
-          </div>
-        </div>
-
-        <div class="table">
-          <div class="row header">
-            <div class="cell">Item</div>
-            <div class="cell center">Qty</div>
-            <div class="cell right">Rate</div>
-            <div class="cell right">Tax</div>
-            <div class="cell right">Total</div>
-          </div>
-          ${itemRows || '<div class="row"><div class="cell" style="grid-column: 1 / -1;">No items added</div></div>'}
-        </div>
-
-        <div class="totals">
-          <div class="summary">
-            <div class="line"><span>Subtotal</span><span>${formatCurrency(quotation.subTotal)}</span></div>
-            <div class="line"><span>Tax</span><span>${formatCurrency(quotation.taxTotal)}</span></div>
-            <div class="line total"><span>Grand Total</span><span>${formatCurrency(quotation.grandTotal)}</span></div>
-          </div>
-        </div>
-
-        <div class="footer">
-          <div class="footer-card">
-            <p class="section-title">Notes</p>
-            <p class="muted">${quotation.notes || '—'}</p>
-          </div>
-          <div class="footer-card">
-            <p class="section-title">Terms</p>
-            <p class="muted">${quotation.terms || '—'}</p>
-          </div>
+        <div class="sticky-footer">
+          <span>${quotation.quoteNumber}</span>
+          <span>Imagicity • ${imagicityContact.website}</span>
         </div>
       </div>
     `;
