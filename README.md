@@ -80,3 +80,12 @@ The sidebar uses SVG icons stored in `public/` (`dashboard.svg`, `invoice.svg`, 
 - **Archiving**: archive/restore toggles `isArchived` and also flips `status` between `Inactive` and `Active`. Archived items stay in the collection for future syncs.
 - **Undefined guard**: Firestore rejects `undefined`. Use `stripUndefined` from `src/lib/utils/stripUndefined.ts` before any writes/updates to avoid `Function DocumentReference.set() called with invalid data. Unsupported field value: undefined` errors.
 - **Sync guidance**: when invoices/quotations/CRM consume a service, call `buildInvoiceLineItemFromService` in `src/lib/services/serviceService.ts` to store immutable snapshots of names, rates, GST, unit labels, and tax-inclusion flags alongside the originating `serviceId`.
+
+## Quotations Module
+- **Location**: UI lives in `src/components/quotations/` (table, form modal, detail drawer) and Firestore helpers/types in `src/lib/quotations/`. The Quotation section renders inside `components/ImvoApp.jsx` using the new `QuotationSection` component.
+- **Client selection**: quotations support `existing` clients (fetched from the `clients` collection and stored as read-only snapshots) or `new` clients entered inline. New client details are written only to the quotation snapshot and are **not** persisted to the `clients` collection.
+- **Firestore collections**:
+  - `quotations` documents store `quoteId` (docId), `quoteNumber`, `clientMode`, `clientId?`, `clientSnapshot` (legalName, brandName?, email?, phone?, billingAddress, gstRegistered, gstin?), `status` (`Draft` | `Sent` | `Accepted` | `Rejected` | `Expired` | `Converted`), `issueDate`, `validUntil`, `currency`, `discountType`, `discountValue`, `subTotal`, `taxTotal`, `grandTotal`, `notes?`, `terms?`, `isArchived`, `createdAt`, `updatedAt`.
+  - `quotations/{quoteId}/items` subcollection documents store immutable item snapshots: `itemId` (docId), `source` (`service` | `custom`), `serviceId?`, `nameSnapshot`, `descriptionSnapshot?`, `unitLabelSnapshot`, `rateSnapshot`, `gstRateSnapshot`, `taxIncludedSnapshot`, `quantity`, `lineSubTotal`, `lineTax`, `lineTotal`.
+- **Saving rules**: use `stripUndefined` before writes, `serverTimestamp` for `createdAt`/`updatedAt`, and always persist snapshots so historical quotes remain unchanged even if clients/services update later.
+- **Actions**: the UI supports searching, status filtering, archiving/restoring, duplicating, and inline status transitions. “Convert to Invoice” is a placeholder button only.
