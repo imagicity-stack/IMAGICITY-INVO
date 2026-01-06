@@ -3,6 +3,7 @@
 import ServiceForm from './ServiceForm';
 import { Service } from '../../lib/services/serviceTypes';
 import { ServiceInput } from '../../lib/services/serviceSchema';
+import { ServiceCategory } from '../../lib/services/serviceTypes';
 
 interface Props {
   open: boolean;
@@ -11,9 +12,20 @@ interface Props {
   onClose: () => void;
   onSubmit: (data: ServiceInput) => Promise<void>;
   submitting?: boolean;
+  categories?: ServiceCategory[];
+  onAddCategory?: (name: string) => Promise<void>;
 }
 
-export default function ServiceFormModal({ open, mode, initialData, onClose, onSubmit, submitting }: Props) {
+export default function ServiceFormModal({
+  open,
+  mode,
+  initialData,
+  onClose,
+  onSubmit,
+  submitting,
+  categories,
+  onAddCategory,
+}: Props) {
   if (!open) return null;
 
   return (
@@ -28,7 +40,15 @@ export default function ServiceFormModal({ open, mode, initialData, onClose, onS
           Close
         </button>
         <div className="card bg-white shadow-2xl">
-          <ServiceForm mode={mode} initialData={initialData} onCancel={onClose} onSubmit={onSubmit} submitting={submitting} />
+          <ServiceForm
+            mode={mode}
+            initialData={initialData}
+            onCancel={onClose}
+            onSubmit={onSubmit}
+            submitting={submitting}
+            categories={categories}
+            onAddCategory={onAddCategory}
+          />
         </div>
       </div>
     </div>

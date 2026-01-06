@@ -80,7 +80,7 @@ service cloud.firestore {
       return data.serviceId == id
         && nonEmptyString(data.name)
         && optionalEnum(data, 'type', ['Service', 'Package', 'Add-on'])
-        && optionalEnum(data, 'category', ['Branding', 'Web', 'Marketing', 'Ads', 'Content', 'Design', 'Other'])
+        && nonEmptyString(data.category)
         && optionalEnum(data, 'pricingModel', ['Fixed', 'Hourly', 'Monthly', 'Per Unit'])
         && optionalEnum(data, 'status', ['Active', 'Inactive'])
         && data.rate is number && data.rate >= 0
@@ -100,21 +100,34 @@ service cloud.firestore {
         && optionalTimestamp(data, 'updatedAt');
     }
 
+    function isValidServiceCategory(data, id) {
+      return data.categoryId == id
+        && nonEmptyString(data.name)
+        && optionalTimestamp(data, 'createdAt');
+    }
+
     match /users/{uid} {
       allow read, write: if isSignedIn() && request.auth.uid == uid;
     }
 
     match /clients/{clientId} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow create, update: if isSignedIn() && isValidClient(request.resource.data);
       allow delete: if isSignedIn();
     }
 
     match /services/{serviceId} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow create: if isSignedIn() && isValidService(request.resource.data, serviceId);
       allow update: if isSignedIn() && isValidService(request.resource.data, serviceId);
       allow delete: if false; // use archive instead of deletes
+    }
+
+    match /serviceCategories/{categoryId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidServiceCategory(request.resource.data, categoryId);
+      allow update: if isSignedIn() && isValidServiceCategory(request.resource.data, categoryId);
+      allow delete: if false;
     }
 
     match /{document=**} {

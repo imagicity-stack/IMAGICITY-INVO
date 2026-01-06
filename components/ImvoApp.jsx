@@ -11,6 +11,7 @@ import ClientTable from './clients/ClientTable';
 import { archiveClient, deleteClient, fetchClients, restoreClient } from '../lib/clients/clientService';
 import { app } from '../lib/firebase';
 import ServicesSection from '../src/components/services/ServicesSection';
+import { listServices } from '../src/lib/services/serviceService';
 
 const navItems = [
   { key: 'dashboard', label: 'Dashboard', icon: '/dashboard.svg' },
@@ -18,12 +19,6 @@ const navItems = [
   { key: 'quotation', label: 'Quotation', icon: '/quotation.svg' },
   { key: 'clients', label: 'Clients', icon: '/clients.svg' },
   { key: 'services', label: 'Services', icon: '/services.svg' },
-];
-
-const seededServices = [
-  { title: 'Brand Identity Sprint', price: 2800, cycle: 'one-time', description: 'Logo suite, typography, color and launch kit.' },
-  { title: 'Paid Media Retainer', price: 3600, cycle: 'monthly', description: 'Performance ads, landing CRO, weekly reporting.' },
-  { title: 'Content + Social', price: 2400, cycle: 'monthly', description: 'Short-form video, copy, scheduling, and community.' },
 ];
 
 const forecastSeries = [62, 78, 70, 88, 95, 90, 102];
@@ -205,22 +200,24 @@ export default function ImvoApp() {
   const [includeArchived, setIncludeArchived] = useState(false);
   const [search, setSearch] = useState('');
 
-  const services = seededServices;
+  const [services, setServices] = useState([]);
+  const [servicesLoading, setServicesLoading] = useState(false);
+  const [servicesError, setServicesError] = useState('');
   const [invoices, setInvoices] = useState([]);
   const [quotations, setQuotations] = useState([]);
 
   const [invoiceForm, setInvoiceForm] = useState({
     client: '',
-    service: seededServices[0].title,
-    amount: 3600,
+    service: '',
+    amount: 0,
     due: '2024-08-15',
     status: 'Pending',
   });
 
   const [quoteForm, setQuoteForm] = useState({
     client: '',
-    service: seededServices[1].title,
-    amount: 2400,
+    service: '',
+    amount: 0,
     status: 'Draft',
   });
 
@@ -253,6 +250,15 @@ export default function ImvoApp() {
   const [clientFormOpen, setClientFormOpen] = useState(false);
   const [clientFormMode, setClientFormMode] = useState('create');
   const [clientFormInitial, setClientFormInitial] = useState(null);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [accountProfile, setAccountProfile] = useState({
+    legalBrandName: '',
+    accountNumber: '',
+    ifscCode: '',
+    gstNumber: '',
+    panNumber: '',
+  });
+  const [accountMessage, setAccountMessage] = useState('');
 
   const loadClients = async (selectClientId) => {
     setClientsLoading(true);
@@ -285,10 +291,27 @@ export default function ImvoApp() {
     }
   };
 
+  const loadServices = async () => {
+    setServicesLoading(true);
+    setServicesError('');
+    try {
+      const data = await listServices({ includeArchived: true });
+      setServices(data);
+    } catch (error) {
+      setServicesError('Unable to load services right now.');
+    } finally {
+      setServicesLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadClients();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, includeArchived]);
+
+  useEffect(() => {
+    loadServices();
+  }, []);
 
   useEffect(() => {
     if (clients.length && !selectedClient) {
@@ -323,19 +346,50 @@ export default function ImvoApp() {
       const seededQuotes = clients.slice(0, 2).map((client, idx) => ({
         id: `QTE-${2058 + idx}`,
         client: client.legalName,
-        service: seededServices[idx]?.title || seededServices[0].title,
+        service: services[idx]?.name || services[0]?.name || 'Service',
         amount: 2400 + idx * 200,
         status: idx % 2 === 0 ? 'Sent' : 'Draft',
       }));
       setQuotations(seededQuotes);
     }
-  }, [clients, invoiceForm.client, quoteForm.client, invoices.length, quotations.length, selectedClient]);
+  }, [clients, invoiceForm.client, quoteForm.client, invoices.length, quotations.length, selectedClient, services]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const stored = window.localStorage.getItem('imvoAccountProfile');
+    if (stored) {
+      try {
+        setAccountProfile(JSON.parse(stored));
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to parse account profile', error);
+      }
+    }
+  }, []);
 
   const totals = useMemo(() => {
     const paid = invoices.filter((item) => item.status === 'Paid').reduce((sum, item) => sum + item.amount, 0);
     const outstanding = invoices.filter((item) => item.status !== 'Paid').reduce((sum, item) => sum + item.amount, 0);
     return { paid, outstanding };
   }, [invoices]);
+
+  useEffect(() => {
+    if (services.length && !invoiceForm.service) {
+      setInvoiceForm((prev) => ({
+        ...prev,
+        service: services[0].name,
+        amount: Number(services[0].rate || prev.amount),
+      }));
+    }
+
+    if (services.length && !quoteForm.service) {
+      setQuoteForm((prev) => ({
+        ...prev,
+        service: services[0].name,
+        amount: Number(services[0].rate || prev.amount),
+      }));
+    }
+  }, [services, invoiceForm.service, quoteForm.service]);
 
   const handleInvoiceSubmit = (e) => {
     e.preventDefault();
@@ -344,11 +398,38 @@ export default function ImvoApp() {
     setInvoices([{ ...invoiceForm, id: nextId }, ...invoices]);
   };
 
+  const handleInvoiceServiceChange = (serviceName) => {
+    const match = services.find((service) => service.name === serviceName);
+    setInvoiceForm((prev) => ({
+      ...prev,
+      service: serviceName,
+      amount: match ? Number(match.rate || prev.amount) : prev.amount,
+    }));
+  };
+
   const handleQuoteSubmit = (e) => {
     e.preventDefault();
     if (!quoteForm.client) return;
     const nextId = `QTE-${2060 + quotations.length}`;
     setQuotations([{ ...quoteForm, id: nextId }, ...quotations]);
+  };
+
+  const handleQuoteServiceChange = (serviceName) => {
+    const match = services.find((service) => service.name === serviceName);
+    setQuoteForm((prev) => ({
+      ...prev,
+      service: serviceName,
+      amount: match ? Number(match.rate || prev.amount) : prev.amount,
+    }));
+  };
+
+  const handleSaveAccount = () => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('imvoAccountProfile', JSON.stringify(accountProfile));
+    }
+    setAccountMessage('Account details saved for invoices and quotations');
+    setAccountOpen(false);
+    setTimeout(() => setAccountMessage(''), 2000);
   };
 
   const SectionWrapper = ({ children }) => <div className="space-y-6">{children}</div>;
@@ -413,6 +494,14 @@ export default function ImvoApp() {
               <span className="inline-flex h-2 w-2 rounded-full bg-brandAccent" aria-hidden />
               Admin session
             </span>
+            <button
+              type="button"
+              onClick={() => setAccountOpen(true)}
+              className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-brandCharcoal shadow hover:-translate-y-0.5"
+            >
+              <span className="inline-flex h-2 w-2 rounded-full bg-brandSecondary" aria-hidden />
+              Account
+            </button>
             <button
               type="button"
               onClick={handleSignOut}
@@ -649,12 +738,16 @@ export default function ImvoApp() {
                   <select
                     className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
                     value={invoiceForm.service}
-                    onChange={(e) => setInvoiceForm({ ...invoiceForm, service: e.target.value })}
+                    onChange={(e) => handleInvoiceServiceChange(e.target.value)}
+                    disabled={!services.length}
                   >
+                    {!services.length && <option>No services yet</option>}
                     {services.map((service) => (
-                      <option key={service.title}>{service.title}</option>
+                      <option key={service.serviceId}>{service.name}</option>
                     ))}
                   </select>
+                  {servicesLoading && <p className="text-xs text-gray-500">Loading services…</p>}
+                  {servicesError && <p className="text-xs text-rose-600">{servicesError}</p>}
                 </label>
                 <label className="text-sm font-semibold text-gray-600">
                   Amount (USD)
@@ -748,12 +841,16 @@ export default function ImvoApp() {
                     <select
                       className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
                       value={quoteForm.service}
-                      onChange={(e) => setQuoteForm({ ...quoteForm, service: e.target.value })}
+                      onChange={(e) => handleQuoteServiceChange(e.target.value)}
+                      disabled={!services.length}
                     >
+                      {!services.length && <option>No services yet</option>}
                       {services.map((service) => (
-                        <option key={service.title}>{service.title}</option>
+                        <option key={service.serviceId}>{service.name}</option>
                       ))}
                     </select>
+                    {servicesLoading && <p className="text-xs text-gray-500">Loading services…</p>}
+                    {servicesError && <p className="text-xs text-rose-600">{servicesError}</p>}
                   </label>
                   <label className="text-sm font-semibold text-gray-600">
                     Amount (USD)
@@ -921,6 +1018,102 @@ export default function ImvoApp() {
           )}
         </div>
       </div>
+
+      {accountMessage && (
+        <div className="fixed right-4 top-4 z-40 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg">
+          {accountMessage}
+        </div>
+      )}
+
+      {accountOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-3xl rounded-3xl border border-white/70 bg-white p-6 shadow-2xl">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brandPrimary">Account</p>
+                <p className="text-2xl font-bold text-brandCharcoal">Billing identity</p>
+                <p className="text-sm text-gray-600">Save profile details to reuse across quotations and invoices.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAccountOpen(false)}
+                className="rounded-full bg-brandMuted px-3 py-1 text-sm font-semibold text-brandCharcoal shadow"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <label className="text-sm font-semibold text-gray-700">
+                Legal Brand Name
+                <input
+                  type="text"
+                  value={accountProfile.legalBrandName}
+                  onChange={(e) => setAccountProfile((prev) => ({ ...prev, legalBrandName: e.target.value }))}
+                  className="mt-1 w-full rounded-2xl border border-gray-200 px-3 py-2"
+                />
+              </label>
+              <label className="text-sm font-semibold text-gray-700">
+                Account Number
+                <input
+                  type="text"
+                  value={accountProfile.accountNumber}
+                  onChange={(e) => setAccountProfile((prev) => ({ ...prev, accountNumber: e.target.value }))}
+                  className="mt-1 w-full rounded-2xl border border-gray-200 px-3 py-2"
+                />
+              </label>
+              <label className="text-sm font-semibold text-gray-700">
+                IFSC Code
+                <input
+                  type="text"
+                  value={accountProfile.ifscCode}
+                  onChange={(e) => setAccountProfile((prev) => ({ ...prev, ifscCode: e.target.value }))}
+                  className="mt-1 w-full rounded-2xl border border-gray-200 px-3 py-2"
+                />
+              </label>
+              <label className="text-sm font-semibold text-gray-700">
+                GST No.
+                <input
+                  type="text"
+                  value={accountProfile.gstNumber}
+                  onChange={(e) => setAccountProfile((prev) => ({ ...prev, gstNumber: e.target.value }))}
+                  className="mt-1 w-full rounded-2xl border border-gray-200 px-3 py-2"
+                />
+              </label>
+              <label className="text-sm font-semibold text-gray-700">
+                Pan-
+                <input
+                  type="text"
+                  value={accountProfile.panNumber}
+                  onChange={(e) => setAccountProfile((prev) => ({ ...prev, panNumber: e.target.value }))}
+                  className="mt-1 w-full rounded-2xl border border-gray-200 px-3 py-2"
+                />
+              </label>
+              <div className="rounded-2xl border border-dashed border-brandPrimary/30 bg-brandMuted px-4 py-3 text-sm text-gray-600">
+                <p className="font-semibold text-brandCharcoal">Why save this?</p>
+                <p className="mt-1">These details stay on this device and help auto-fill invoices and quotations.</p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setAccountOpen(false)}
+                className="rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold text-brandCharcoal"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAccount}
+                className="rounded-full bg-brandPrimary px-5 py-2 text-sm font-semibold text-white shadow"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {clientFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">

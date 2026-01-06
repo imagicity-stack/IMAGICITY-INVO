@@ -1,7 +1,7 @@
 import { Timestamp } from 'firebase/firestore';
 
 export type ServiceType = 'Service' | 'Package' | 'Add-on';
-export type ServiceCategory = 'Branding' | 'Web' | 'Marketing' | 'Ads' | 'Content' | 'Design' | 'Other';
+export type ServiceCategory = string;
 export type PricingModel = 'Fixed' | 'Hourly' | 'Monthly' | 'Per Unit';
 export type ServiceStatus = 'Active' | 'Inactive';
 
