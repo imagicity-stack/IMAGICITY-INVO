@@ -11,6 +11,7 @@
 </head>
 <body>
   <main class="page">
+    <div id="status" class="status status--hidden"></div>
     <header class="page__top">
       <div>
         <p class="eyebrow">Invoice To</p>
@@ -94,7 +95,14 @@
     </footer>
   </main>
 
+  <script id="firebase-config" type="application/json">
+    {
+      "apiKey": "YOUR_FIREBASE_API_KEY",
+      "authDomain": "YOUR_FIREBASE_AUTH_DOMAIN",
+      "projectId": "YOUR_FIREBASE_PROJECT_ID"
+    }
+  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js" integrity="sha512-YcsIPZx1bM5GxQbrrf5gkP7FpC18JNpDutVdGsPV1oDttYVOlJawVSNlEInxjeaUp43EIBosHuLl5EJo7N2zOg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="quotation.js"></script>
+  <script type="module" src="quotation.js"></script>
 </body>
 </html>
