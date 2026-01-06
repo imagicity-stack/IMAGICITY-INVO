@@ -20,4 +20,8 @@ export function stripUndefined<T>(value: T): T {
   return value;
 }
 
+export function stripUndefinedDeep<T>(value: T): T {
+  return stripUndefined(value);
+}
+
 export default stripUndefined;
