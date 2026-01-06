@@ -81,18 +81,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#f6f7fb] via-white to-[#eef2ff] px-4 py-12 text-brandCharcoal">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#f6faff] via-white to-[#eef2ff] px-4 py-12 text-brandCharcoal">
       <div className="w-full max-w-xl space-y-5">
-        <p className="text-center text-sm font-semibold uppercase tracking-[0.35em] text-brandRed">INVO - CRM for imagicity</p>
-        <div className="relative mx-auto aspect-square min-h-[440px] w-full max-w-[420px] overflow-hidden rounded-[32px] border border-white/80 bg-white/90 p-8 shadow-xl shadow-brandRed/10 backdrop-blur">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(199,15,44,0.08),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(247,201,72,0.12),transparent_35%)]" aria-hidden />
+        <p className="text-center text-sm font-semibold uppercase tracking-[0.35em] text-brandPrimary">INVO - CRM for imagicity</p>
+        <div className="relative mx-auto aspect-square min-h-[440px] w-full max-w-[420px] overflow-hidden rounded-[32px] border border-white/80 bg-white/90 p-8 shadow-xl shadow-brandPrimary/10 backdrop-blur">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(37,99,235,0.08),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(124,58,237,0.12),transparent_35%)]" aria-hidden />
           <div className="relative flex h-full flex-col justify-between gap-6">
             <div className="space-y-2 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brandRed text-lg font-bold text-white shadow-lg shadow-brandRed/30">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brandPrimary text-lg font-bold text-white shadow-lg shadow-brandPrimary/30">
                 IM
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.4em] text-brandRed">Admin Login</p>
+                <p className="text-xs uppercase tracking-[0.4em] text-brandPrimary">Admin Login</p>
                 <h1 className="text-2xl font-bold text-brandCharcoal">Access your workspace</h1>
                 <p className="text-sm text-gray-500">Sign in with your Firebase admin credentials</p>
               </div>
@@ -105,7 +105,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-brandCharcoal shadow-inner shadow-gray-100 outline-none transition focus:border-brandRed focus:ring-2 focus:ring-brandRed/15"
+                  className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-brandCharcoal shadow-inner shadow-gray-100 outline-none transition focus:border-brandPrimary focus:ring-2 focus:ring-brandPrimary/15"
                   placeholder="admin@imagicity.com"
                   required
                 />
@@ -116,7 +116,7 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-brandCharcoal shadow-inner shadow-gray-100 outline-none transition focus:border-brandRed focus:ring-2 focus:ring-brandRed/15"
+                  className="mt-2 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-brandCharcoal shadow-inner shadow-gray-100 outline-none transition focus:border-brandPrimary focus:ring-2 focus:ring-brandPrimary/15"
                   placeholder="••••••••"
                   required
                 />
@@ -128,7 +128,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brandRed to-brandYellow px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brandRed/25 transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brandRed disabled:cursor-not-allowed disabled:opacity-70"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brandPrimary via-brandSecondary to-brandAccent px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/25 transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brandPrimary disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {loading ? 'Verifying admin access…' : 'Sign in and enter dashboard'}
               </button>
@@ -136,7 +136,7 @@ export default function LoginPage() {
 
             <div className="flex items-center justify-between rounded-2xl bg-gray-50 px-4 py-3 text-xs font-semibold text-gray-600">
               <span className="flex items-center gap-2">
-                <span className="inline-flex h-2 w-2 rounded-full bg-brandRed" aria-hidden />
+                <span className="inline-flex h-2 w-2 rounded-full bg-brandPrimary" aria-hidden />
                 Admins only
               </span>
               <span>Firebase secured</span>

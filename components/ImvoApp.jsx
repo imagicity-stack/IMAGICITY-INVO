@@ -32,8 +32,8 @@ const advancedMetrics = [
   { label: 'Recurring retention', value: '92%', delta: '+3.4% stabilized' },
 ];
 const channelBreakdown = [
-  { label: 'Services', value: 52, tone: 'red' },
-  { label: 'Invoices', value: 32, tone: 'yellow' },
+  { label: 'Services', value: 52, tone: 'primary' },
+  { label: 'Invoices', value: 32, tone: 'secondary' },
   { label: 'Quotations', value: 16, tone: 'muted' },
 ];
 
@@ -42,19 +42,19 @@ const learningTracks = [
     title: 'Design Branding',
     meta: '6 modules',
     progress: 80,
-    tone: 'from-[#fef3c7] via-white to-[#fde68a]',
+    tone: 'from-[#e0f2fe] via-white to-[#cbdcf7]',
   },
   {
     title: 'Digital Marketing',
     meta: '8 modules',
     progress: 45,
-    tone: 'from-[#e0f2fe] via-white to-[#bfdbfe]',
+    tone: 'from-[#ede9fe] via-white to-[#d8d4ff]',
   },
   {
     title: 'Basic HTML & CSS',
     meta: '12 modules',
     progress: 95,
-    tone: 'from-[#ede9fe] via-white to-[#ddd6fe]',
+    tone: 'from-[#e0f7ff] via-white to-[#c7ecff]',
   },
 ];
 
@@ -74,7 +74,7 @@ function SectionHeader({ icon, title, actions }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="section-title">
-        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brandRed/10">
+        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brandPrimary/10">
           <Image src={icon} alt="" width={20} height={20} />
         </span>
         <span>{title}</span>
@@ -89,7 +89,7 @@ function StatCard({ title, value, delta, pill }) {
     <div className="card">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-gray-500">{title}</p>
-        {pill && <span className="badge bg-brandRed/10 text-brandRed">{pill}</span>}
+        {pill && <span className="badge bg-brandPrimary/10 text-brandPrimary">{pill}</span>}
       </div>
       <p className="mt-4 text-3xl font-bold text-brandCharcoal">{value}</p>
       {delta && <p className="mt-2 text-sm text-green-600">{delta}</p>}
@@ -100,8 +100,8 @@ function StatCard({ title, value, delta, pill }) {
 function Pill({ children, tone = 'muted' }) {
   const map = {
     muted: 'bg-gray-100 text-gray-700',
-    red: 'bg-brandRed/10 text-brandRed',
-    yellow: 'bg-brandYellow/20 text-brandCharcoal',
+    primary: 'bg-brandPrimary/10 text-brandPrimary',
+    secondary: 'bg-brandSecondary/15 text-brandCharcoal',
     green: 'bg-emerald-100 text-emerald-700',
   };
   return <span className={`badge ${map[tone]}`}>{children}</span>;
@@ -118,7 +118,7 @@ function LearningCard({ track }) {
         <span className="badge bg-white/70 text-brandCharcoal">Live</span>
       </div>
       <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-white/70">
-        <div className="h-full rounded-full bg-brandRed" style={{ width: `${track.progress}%` }} />
+        <div className="h-full rounded-full bg-brandPrimary" style={{ width: `${track.progress}%` }} />
       </div>
       <p className="mt-2 text-xs font-semibold text-gray-600">{track.progress}% completed</p>
     </div>
@@ -130,7 +130,7 @@ function LeaderboardCard() {
     <div className="card space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-lg font-semibold text-brandCharcoal">Leaderboard</p>
-        <span className="badge bg-brandRed/10 text-brandRed">Weekly</span>
+        <span className="badge bg-brandPrimary/10 text-brandPrimary">Weekly</span>
       </div>
       <div className="space-y-3">
         {leaderboardEntries.map((entry, idx) => (
@@ -144,7 +144,7 @@ function LeaderboardCard() {
                 <p className="text-xs text-gray-500">{entry.handle}</p>
               </div>
             </div>
-            <p className="text-sm font-semibold text-brandRed">{entry.points} pts</p>
+            <p className="text-sm font-semibold text-brandPrimary">{entry.points} pts</p>
           </div>
         ))}
       </div>
@@ -158,13 +158,13 @@ function ProfileRail() {
       <div className="card space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brandRed text-lg font-bold text-white">AI</div>
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brandPrimary text-lg font-bold text-white">AI</div>
             <div>
               <p className="text-sm font-semibold text-gray-500">Profile</p>
               <p className="text-lg font-bold text-brandCharcoal">Admin</p>
             </div>
           </div>
-          <span className="badge bg-brandRed/10 text-brandRed">Pro</span>
+          <span className="badge bg-brandPrimary/10 text-brandPrimary">Pro</span>
         </div>
         <div className="rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3">
           <p className="text-xs uppercase tracking-wide text-gray-500">Current level</p>
@@ -176,12 +176,12 @@ function ProfileRail() {
       <div className="card space-y-3">
         <div className="flex items-center justify-between">
           <p className="text-lg font-semibold text-brandCharcoal">Schedule</p>
-          <span className="badge bg-brandYellow/30 text-brandCharcoal">Today</span>
+          <span className="badge bg-brandSecondary/30 text-brandCharcoal">Today</span>
         </div>
         <div className="space-y-3">
           {scheduleItems.map((item) => (
             <div key={item.title} className="rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-brandRed">{item.time}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-brandPrimary">{item.time}</p>
               <p className="font-semibold text-brandCharcoal">{item.title}</p>
               <p className="text-sm text-gray-500">{item.subtitle}</p>
             </div>
@@ -398,11 +398,37 @@ export default function ImvoApp() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f6f7fb] via-white to-[#eef2ff]">
       <div className="mx-auto max-w-[1500px] px-4 py-6">
+        <header className="sticky top-4 z-30 mb-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-gray-100 bg-white/90 px-5 py-4 shadow-lg shadow-brandPrimary/5 backdrop-blur">
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brandPrimary to-brandSecondary text-lg font-bold text-white shadow-lg shadow-brandPrimary/20">
+              IM
+            </span>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">Imagicity</p>
+              <p className="text-lg font-bold text-brandCharcoal">INVO CRM</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden items-center gap-2 rounded-full bg-brandPrimary/10 px-3 py-1 text-xs font-semibold text-brandPrimary md:inline-flex">
+              <span className="inline-flex h-2 w-2 rounded-full bg-brandAccent" aria-hidden />
+              Admin session
+            </span>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="flex items-center gap-2 rounded-full bg-brandCharcoal px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/20 transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brandPrimary disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" aria-hidden />
+              {signingOut ? 'Signing out…' : 'Sign out'}
+            </button>
+          </div>
+        </header>
         <div className={`grid gap-6 ${gridCols}`}>
           <aside className="lg:sticky lg:top-6">
-            <div className="card space-y-6 border border-white/80 bg-white/90 shadow-xl shadow-brandRed/5">
+            <div className="card space-y-6 border border-white/80 bg-white/90 shadow-xl shadow-brandPrimary/5">
               <div className="flex items-center justify-center">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brandRed text-lg font-bold text-white shadow-lg shadow-brandRed/25">IM</span>
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brandPrimary text-lg font-bold text-white shadow-lg shadow-brandPrimary/25">IM</span>
               </div>
               <div className="grid gap-2">
                 {navItems.map((item) => {
@@ -411,11 +437,11 @@ export default function ImvoApp() {
                     <button
                       key={item.key}
                       onClick={() => setActive(item.key)}
-                      className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brandRed/10 ${
-                        isActive ? 'border-brandRed bg-gradient-to-r from-brandRed to-brandYellow text-white shadow-brandRed/30' : 'border-gray-200 bg-white text-brandCharcoal'
+                      className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brandPrimary/10 ${
+                        isActive ? 'border-brandPrimary bg-gradient-to-r from-brandPrimary to-brandSecondary text-white shadow-brandPrimary/30' : 'border-gray-200 bg-white text-brandCharcoal'
                       }`}
                     >
-                      <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${isActive ? 'bg-white/15' : 'bg-brandRed/10'}`}>
+                      <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${isActive ? 'bg-white/15' : 'bg-brandPrimary/10'}`}>
                         <Image src={item.icon} alt="" width={18} height={18} />
                       </span>
                       <span className="font-semibold">{item.label}</span>
@@ -423,8 +449,8 @@ export default function ImvoApp() {
                   );
                 })}
               </div>
-              <div className="rounded-2xl border border-dashed border-brandRed/30 bg-brandRed/5 p-4 text-sm text-brandCharcoal">
-                <p className="font-semibold text-brandRed">Get Premium now!</p>
+              <div className="rounded-2xl border border-dashed border-brandPrimary/30 bg-brandPrimary/5 p-4 text-sm text-brandCharcoal">
+                <p className="font-semibold text-brandPrimary">Get Premium now!</p>
                 <p className="mt-1 text-gray-700">Subscribe to unlock deeper analytics and automated workflows.</p>
               </div>
             </div>
@@ -440,19 +466,11 @@ export default function ImvoApp() {
                     <p className="text-sm text-gray-600">Track performance, billing, and learning momentum at a glance.</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="hidden items-center gap-2 rounded-full bg-brandRed/10 px-3 py-1 text-xs font-semibold text-brandRed md:inline-flex">
-                      <span className="inline-flex h-2 w-2 rounded-full bg-brandRed" aria-hidden />
-                      Admin session
+                    <span className="hidden items-center gap-2 rounded-full bg-brandPrimary/10 px-3 py-1 text-xs font-semibold text-brandPrimary md:inline-flex">
+                      <span className="inline-flex h-2 w-2 rounded-full bg-brandAccent" aria-hidden />
+                      Admin dashboard
                     </span>
-                    <button
-                      type="button"
-                      onClick={handleSignOut}
-                      disabled={signingOut}
-                      className="flex items-center gap-2 rounded-full bg-brandCharcoal px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brandRed/20 transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brandRed disabled:cursor-not-allowed disabled:opacity-70"
-                    >
-                      <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" aria-hidden />
-                      {signingOut ? 'Signing out…' : 'Sign out'}
-                    </button>
+                    <span className="rounded-full bg-brandSecondary/10 px-3 py-1 text-xs font-semibold text-brandCharcoal">Updated just now</span>
                   </div>
                 </div>
 
@@ -464,14 +482,14 @@ export default function ImvoApp() {
 
                 <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
                   <div className="card relative overflow-hidden bg-white/90">
-                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(199,15,44,0.05),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(247,201,72,0.08),transparent_35%)]" aria-hidden />
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(37,99,235,0.05),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(124,58,237,0.08),transparent_35%)]" aria-hidden />
                     <div className="relative space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="section-title">
-                          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandRed/10 text-brandRed">⏱️</span>
+                          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandPrimary/10 text-brandPrimary">⏱️</span>
                           <span>Hours spent</span>
                         </div>
-                        <span className="badge bg-brandYellow/30 text-brandCharcoal">Weekly</span>
+                        <span className="badge bg-brandSecondary/30 text-brandCharcoal">Weekly</span>
                       </div>
                       <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
@@ -479,8 +497,8 @@ export default function ImvoApp() {
                           <p className="text-3xl font-bold text-brandCharcoal">{(forecastSeries.reduce((a, b) => a + b, 0) / 10).toFixed(1)} hrs</p>
                           <p className="text-sm text-emerald-700">+12% vs last week</p>
                         </div>
-                        <div className="rounded-2xl border border-dashed border-brandRed/30 bg-white/80 px-4 py-3 text-sm font-semibold text-brandCharcoal">
-                          <p className="text-xs uppercase tracking-wide text-brandRed">Focus</p>
+                        <div className="rounded-2xl border border-dashed border-brandPrimary/30 bg-white/80 px-4 py-3 text-sm font-semibold text-brandCharcoal">
+                          <p className="text-xs uppercase tracking-wide text-brandPrimary">Focus</p>
                           <p>Branding & automation</p>
                         </div>
                       </div>
@@ -488,7 +506,7 @@ export default function ImvoApp() {
                       <div className="mt-2 flex items-end gap-2">
                         {forecastSeries.map((point, idx) => (
                           <div key={point} className="flex flex-1 flex-col items-center gap-2">
-                            <div className="w-full rounded-full bg-gradient-to-t from-brandRed to-brandYellow" style={{ height: `${point / 1.2}%` }} />
+                            <div className="w-full rounded-full bg-gradient-to-t from-brandPrimary to-brandSecondary" style={{ height: `${point / 1.2}%` }} />
                             <span className="text-[10px] font-semibold text-gray-500">D{idx + 1}</span>
                           </div>
                         ))}
@@ -498,7 +516,7 @@ export default function ImvoApp() {
 
                   <div className="card space-y-4">
                     <div className="section-title">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandYellow/30 text-brandCharcoal">📈</span>
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandSecondary/30 text-brandCharcoal">📈</span>
                       <span>Performance</span>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -516,14 +534,14 @@ export default function ImvoApp() {
                         {channelBreakdown.map((channel) => (
                           <div key={channel.label} className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <span className={`badge ${channel.tone === 'red' ? 'bg-brandRed/10 text-brandRed' : channel.tone === 'yellow' ? 'bg-brandYellow/30 text-brandCharcoal' : 'bg-gray-100 text-gray-700'}`}>
+                              <span className={`badge ${channel.tone === 'primary' ? 'bg-brandPrimary/10 text-brandPrimary' : channel.tone === 'secondary' ? 'bg-brandSecondary/20 text-brandCharcoal' : 'bg-gray-100 text-gray-700'}`}>
                                 {channel.label}
                               </span>
                               <span className="text-sm text-gray-500">Share of wins</span>
                             </div>
                             <div className="flex items-center gap-3">
                               <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-100">
-                                <div className={`h-full rounded-full ${channel.tone === 'red' ? 'bg-brandRed' : channel.tone === 'yellow' ? 'bg-brandYellow' : 'bg-gray-400'}`} style={{ width: `${channel.value}%` }} />
+                                <div className={`h-full rounded-full ${channel.tone === 'primary' ? 'bg-brandPrimary' : channel.tone === 'secondary' ? 'bg-brandSecondary' : 'bg-gray-400'}`} style={{ width: `${channel.value}%` }} />
                               </div>
                               <p className="text-sm font-semibold text-brandCharcoal">{channel.value}%</p>
                             </div>
@@ -538,10 +556,10 @@ export default function ImvoApp() {
                   <div className="card">
                     <div className="flex items-center justify-between">
                       <div className="section-title">
-                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandYellow/30 text-brandCharcoal">💎</span>
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandSecondary/30 text-brandCharcoal">💎</span>
                         <span>Your point</span>
                       </div>
-                      <span className="badge bg-brandRed/10 text-brandRed">Live</span>
+                      <span className="badge bg-brandPrimary/10 text-brandPrimary">Live</span>
                     </div>
                     <div className="mt-4 grid gap-4 md:grid-cols-2">
                       <div className="rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3">
@@ -563,7 +581,7 @@ export default function ImvoApp() {
                 <div className="grid gap-4 lg:grid-cols-2">
                   <div className="card">
                     <div className="section-title mb-4">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandYellow/30 text-brandCharcoal">💹</span>
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandSecondary/30 text-brandCharcoal">💹</span>
                       <span>Pipeline snapshot</span>
                     </div>
                     <div className="space-y-4">
@@ -574,7 +592,7 @@ export default function ImvoApp() {
                             <p className="text-sm text-gray-500">{quote.service}</p>
                           </div>
                           <div className="flex items-center gap-3">
-                            <Pill tone="yellow">{quote.status}</Pill>
+                            <Pill tone="secondary">{quote.status}</Pill>
                             <p className="font-semibold text-brandCharcoal">${quote.amount.toLocaleString()}</p>
                           </div>
                         </div>
@@ -584,7 +602,7 @@ export default function ImvoApp() {
 
                   <div className="card">
                     <div className="section-title mb-4">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandRed/10 text-brandRed">⏳</span>
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandPrimary/10 text-brandPrimary">⏳</span>
                       <span>Upcoming due dates</span>
                     </div>
                     <div className="space-y-3">
@@ -613,7 +631,7 @@ export default function ImvoApp() {
             <form onSubmit={handleInvoiceSubmit} className="card space-y-4">
               <div className="flex items-start justify-between">
                 <p className="text-lg font-semibold">Generate invoice</p>
-                <Pill tone="red">Live preview</Pill>
+                <Pill tone="primary">Live preview</Pill>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="text-sm font-semibold text-gray-600">
@@ -668,13 +686,13 @@ export default function ImvoApp() {
                     id="status"
                     checked={invoiceForm.status === 'Paid'}
                     onChange={(e) => setInvoiceForm({ ...invoiceForm, status: e.target.checked ? 'Paid' : 'Pending' })}
-                    className="h-4 w-4 rounded border-gray-300 text-brandRed focus:ring-brandRed"
+                    className="h-4 w-4 rounded border-gray-300 text-brandPrimary focus:ring-brandPrimary"
                   />
                   <label htmlFor="status">Mark as paid</label>
                 </div>
                 <button
                   type="submit"
-                  className="rounded-full bg-brandRed px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-brandRed/30 transition hover:-translate-y-0.5"
+                  className="rounded-full bg-brandPrimary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/30 transition hover:-translate-y-0.5"
                 >
                   Save invoice
                 </button>
@@ -684,7 +702,7 @@ export default function ImvoApp() {
               <div className="card space-y-4 bg-gradient-to-br from-brandMuted to-white">
                 <div className="flex items-center justify-between">
                   <p className="text-lg font-semibold">Recent invoices</p>
-                  <Pill tone="yellow">Auto-sync soon</Pill>
+                  <Pill tone="secondary">Auto-sync soon</Pill>
                 </div>
                 <div className="space-y-3">
                   {invoices.map((invoice) => (
@@ -712,7 +730,7 @@ export default function ImvoApp() {
               <form onSubmit={handleQuoteSubmit} className="card space-y-4">
                 <div className="flex items-start justify-between">
                   <p className="text-lg font-semibold">Send quotation</p>
-                  <Pill tone="yellow">Shareable</Pill>
+                  <Pill tone="secondary">Shareable</Pill>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
                   <label className="text-sm font-semibold text-gray-600">
@@ -765,7 +783,7 @@ export default function ImvoApp() {
                 </div>
                 <button
                   type="submit"
-                  className="rounded-full bg-brandYellow px-5 py-2 text-sm font-semibold text-brandCharcoal shadow-lg shadow-brandYellow/30 transition hover:-translate-y-0.5"
+                  className="rounded-full bg-brandSecondary px-5 py-2 text-sm font-semibold text-brandCharcoal shadow-lg shadow-brandSecondary/30 transition hover:-translate-y-0.5"
                 >
                   Save quotation
                 </button>
@@ -784,7 +802,7 @@ export default function ImvoApp() {
                         <p className="text-sm text-gray-500">{quote.client}</p>
                       </div>
                       <div className="text-right">
-                        <Pill tone="yellow">{quote.status}</Pill>
+                        <Pill tone="secondary">{quote.status}</Pill>
                         <p className="mt-1 font-semibold text-brandCharcoal">${quote.amount.toLocaleString()}</p>
                       </div>
                     </div>
@@ -818,7 +836,7 @@ export default function ImvoApp() {
                   <button
                     type="button"
                     onClick={openCreateClient}
-                    className="rounded-xl bg-brandRed px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brandRed/20 transition hover:-translate-y-0.5 hover:bg-red-700"
+                    className="rounded-xl bg-brandPrimary px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/20 transition hover:-translate-y-0.5 hover:bg-red-700"
                   >
                     Add Client
                   </button>
@@ -838,11 +856,11 @@ export default function ImvoApp() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search by legal name, brand, email, or phone"
-                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 pr-12 text-sm focus:border-brandRed focus:ring-2 focus:ring-brandRed/20"
+                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 pr-12 text-sm focus:border-brandPrimary focus:ring-2 focus:ring-brandPrimary/20"
                   />
                   <button
                     type="submit"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-brandRed px-3 py-1 text-xs font-semibold text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-brandPrimary px-3 py-1 text-xs font-semibold text-white"
                   >
                     Go
                   </button>
@@ -869,7 +887,7 @@ export default function ImvoApp() {
                     type="checkbox"
                     checked={includeArchived}
                     onChange={(e) => setIncludeArchived(e.target.checked)}
-                    className="h-5 w-5 rounded border-gray-300 text-brandRed focus:ring-brandRed"
+                    className="h-5 w-5 rounded border-gray-300 text-brandPrimary focus:ring-brandPrimary"
                   />
                 </label>
               </div>
@@ -900,14 +918,14 @@ export default function ImvoApp() {
               <div className="card space-y-4">
                 <div className="flex items-center justify-between">
                   <p className="text-lg font-semibold">Service catalog</p>
-                  <Pill tone="yellow">Visible to sales</Pill>
+                  <Pill tone="secondary">Visible to sales</Pill>
                 </div>
                 <div className="space-y-3">
                   {services.map((service, idx) => (
                     <div key={`${service.title}-${idx}`} className="flex flex-col gap-2 rounded-2xl border border-gray-100 bg-brandMuted p-4">
                       <div className="flex items-center justify-between">
                         <p className="font-semibold text-brandCharcoal">{service.title}</p>
-                        <Pill tone="red">{service.cycle}</Pill>
+                        <Pill tone="primary">{service.cycle}</Pill>
                       </div>
                       <p className="text-sm text-gray-500">{service.description || 'No description added yet.'}</p>
                       <p className="text-lg font-bold text-brandCharcoal">${service.price.toLocaleString()}</p>
@@ -919,7 +937,7 @@ export default function ImvoApp() {
               <form onSubmit={handleServiceSubmit} className="card space-y-4">
                 <div className="flex items-start justify-between">
                   <p className="text-lg font-semibold">Create service</p>
-                  <Pill tone="red">New</Pill>
+                  <Pill tone="primary">New</Pill>
                 </div>
                 <label className="text-sm font-semibold text-gray-600">
                   Title
@@ -964,7 +982,7 @@ export default function ImvoApp() {
                 </label>
                 <button
                   type="submit"
-                  className="rounded-full bg-brandRed px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-brandRed/30 transition hover:-translate-y-0.5"
+                  className="rounded-full bg-brandPrimary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/30 transition hover:-translate-y-0.5"
                 >
                   Save service
                 </button>

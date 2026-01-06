@@ -9,10 +9,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brandRed: '#c2132c',
-        brandYellow: '#f7c948',
+        brandPrimary: '#2563eb',
+        brandSecondary: '#7c3aed',
+        brandAccent: '#0ea5e9',
         brandCharcoal: '#0f172a',
-        brandMuted: '#f9fafb',
+        brandMuted: '#f8fafc',
       },
       boxShadow: {
         glass: '0 10px 45px rgba(0,0,0,0.1)',
