@@ -11,6 +11,7 @@ interface Props {
   onDuplicate: (quote: Quotation) => void;
   onArchiveToggle: (quote: Quotation) => void;
   onStatusChange: (quote: Quotation, status: Quotation['status']) => void;
+  onDelete: (quote: Quotation) => void;
 }
 
 export default function QuotationDetailDrawer({
@@ -22,6 +23,7 @@ export default function QuotationDetailDrawer({
   onDuplicate,
   onArchiveToggle,
   onStatusChange,
+  onDelete,
 }: Props) {
   if (!open || !quotation) return null;
 
@@ -168,6 +170,13 @@ export default function QuotationDetailDrawer({
             className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-brandCharcoal"
           >
             {quotation.isArchived ? 'Restore' : 'Archive'}
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(quotation)}
+            className="rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Delete
           </button>
           <button
             type="button"

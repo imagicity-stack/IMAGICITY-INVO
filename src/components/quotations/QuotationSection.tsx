@@ -7,6 +7,7 @@ import QuotationTable from './QuotationTable';
 import {
   addOrReplaceQuotationItems,
   createQuotation,
+  deleteQuotation,
   duplicateQuotation,
   getQuotationById,
   getQuotationWithMeta,
@@ -29,6 +30,7 @@ export default function QuotationSection() {
   const [formInitial, setFormInitial] = useState<Partial<QuotationFormData> | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const loadQuotations = useCallback(async () => {
     setLoading(true);
@@ -50,11 +52,18 @@ export default function QuotationSection() {
     return () => clearTimeout(timer);
   }, [loadQuotations]);
 
+  useEffect(() => {
+    if (expandedId && !quotations.find((quote) => quote.quoteId === expandedId)) {
+      setExpandedId(null);
+    }
+  }, [expandedId, quotations]);
+
   const handleSelect = async (quote: Quotation) => {
     setDetailQuote(quote);
     setDetailOpen(true);
     const items = await getQuotationById(quote.quoteId);
     setDetailItems(items || []);
+    setExpandedId(quote.quoteId);
   };
 
   const handleSave = async (payload: QuotationPayload, items: QuotationItemPayload[]) => {
@@ -99,6 +108,24 @@ export default function QuotationSection() {
     } catch (err) {
       console.error(err);
       setToast('Failed to duplicate quotation');
+    }
+  };
+
+  const handleDelete = async (quote: Quotation) => {
+    const confirmed = window.confirm('Are you sure you want to delete this quotation? This action cannot be undone.');
+    if (!confirmed) return;
+    setSubmitting(true);
+    try {
+      await deleteQuotation(quote.quoteId);
+      setToast('Quotation deleted');
+      setDetailOpen(false);
+      setExpandedId(null);
+      await loadQuotations();
+    } catch (err) {
+      console.error(err);
+      setToast('Failed to delete quotation');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -153,6 +180,7 @@ export default function QuotationSection() {
           setFormOpen(true);
         }}
         onSelect={handleSelect}
+        expandedId={expandedId}
       />
 
       <QuotationDetailDrawer
@@ -164,6 +192,7 @@ export default function QuotationSection() {
         onDuplicate={handleDuplicate}
         onArchiveToggle={handleArchiveToggle}
         onStatusChange={handleStatusChange}
+        onDelete={handleDelete}
       />
 
       <QuotationFormModal

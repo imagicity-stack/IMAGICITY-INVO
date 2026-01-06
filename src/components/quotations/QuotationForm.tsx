@@ -16,6 +16,7 @@ import {
   QuotationItemPayload,
   QuotationPayload,
 } from '../../lib/quotations/quotationTypes';
+import { fetchNextQuoteNumber } from '../../lib/quotations/quotationService';
 
 interface Props {
   initialData?: Partial<QuotationFormData>;
@@ -62,13 +63,8 @@ const emptyItem: QuotationItem = {
 const toDateInput = (value?: unknown) => {
   if (!value) return '';
   const date = typeof (value as any)?.toDate === 'function' ? (value as any).toDate() : new Date(value as any);
+  if (Number.isNaN(date.getTime())) return '';
   return date.toISOString().slice(0, 10);
-};
-
-const initialQuoteNumber = () => {
-  const now = new Date();
-  return `Q-${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${Math
-.floor(Math.random() * 9000 + 1000)}`;
 };
 
 function computeTotals(items: QuotationItem[], discountType: 'None' | 'Flat' | 'Percent', discountValue: number) {
@@ -92,7 +88,7 @@ export default function QuotationForm({ initialData, onSubmit, onCancel, submitt
   const [clientMode, setClientMode] = useState<ClientMode>(initialData?.clientMode || 'existing');
   const [clientId, setClientId] = useState<string | null>((initialData?.clientId as string) || null);
   const [clientSnapshot, setClientSnapshot] = useState<ClientSnapshot>(initialData?.clientSnapshot || buildDefaultClient());
-  const [quoteNumber, setQuoteNumber] = useState(initialData?.quoteNumber || initialQuoteNumber());
+  const [quoteNumber, setQuoteNumber] = useState(initialData?.quoteNumber || '');
   const [status, setStatus] = useState<QuotationPayload['status']>(initialData?.status || 'Draft');
   const [issueDate, setIssueDate] = useState<string>(toDateInput(initialData?.issueDate));
   const [validUntil, setValidUntil] = useState<string>(toDateInput(initialData?.validUntil));
@@ -122,6 +118,13 @@ export default function QuotationForm({ initialData, onSubmit, onCancel, submitt
       .catch(() => setFormError('Failed to load clients or services.'))
       .finally(() => setLoadingPickers(false));
   }, []);
+
+  useEffect(() => {
+    if (initialData?.quoteNumber) return;
+    fetchNextQuoteNumber()
+      .then((next) => setQuoteNumber(next))
+      .catch(() => setQuoteNumber(''));
+  }, [initialData?.quoteNumber]);
 
   const totals = useMemo(() => computeTotals(items, discountType, discountValue), [items, discountType, discountValue]);
 
@@ -221,14 +224,14 @@ export default function QuotationForm({ initialData, onSubmit, onCancel, submitt
               <p className="text-lg font-semibold text-brandCharcoal">Quote details</p>
               {loadingPickers && <span className="text-xs text-gray-500">Loading pickers…</span>}
             </div>
-            <label className="text-sm font-semibold text-gray-600">
-              Quote number
-              <input
-                className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                value={quoteNumber}
-                onChange={(e) => setQuoteNumber(e.target.value)}
-              />
-            </label>
+              <label className="text-sm font-semibold text-gray-600">
+                Quote number
+                <input
+                  className="mt-1 w-full rounded-2xl border border-gray-200 bg-gray-100 px-3 py-2"
+                  value={quoteNumber}
+                  readOnly
+                />
+              </label>
             <div className="grid gap-3 md:grid-cols-2">
               <label className="text-sm font-semibold text-gray-600">
                 Issue date
@@ -334,33 +337,33 @@ export default function QuotationForm({ initialData, onSubmit, onCancel, submitt
               <p>Add at least one item and choose a client before saving.</p>
               <p>New clients entered here stay within the quotation snapshot only.</p>
             </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={onCancel}
-                className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                disabled={submitting}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={(e) => handleSubmit(e as any, 'Draft')}
-                className="rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow"
-                disabled={submitting}
-              >
-                Save Draft
-              </button>
-              <button
-                type="submit"
-                onClick={(e) => handleSubmit(e as any, 'Sent')}
-                className="rounded-full bg-brandPrimary px-4 py-2 text-sm font-semibold text-white shadow"
-                disabled={submitting}
-              >
-                Save &amp; Mark Sent
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  disabled={submitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => handleSubmit(e as any, 'Draft')}
+                  className="rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow"
+                  disabled={submitting}
+                >
+                  Save Draft
+                </button>
+                <button
+                  type="submit"
+                  onClick={(e) => handleSubmit(e as any, status)}
+                  className="rounded-full bg-brandPrimary px-4 py-2 text-sm font-semibold text-white shadow"
+                  disabled={submitting}
+                >
+                  Save
+                </button>
+              </div>
             </div>
-          </div>
         </div>
       </div>
     </form>

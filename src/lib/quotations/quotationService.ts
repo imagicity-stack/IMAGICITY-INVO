@@ -8,6 +8,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  limit,
   updateDoc,
   where,
   writeBatch,
@@ -67,6 +68,25 @@ export async function getQuotationById(id: string): Promise<QuotationItem[]> {
   return itemsSnapshot.docs.map((itemSnap) => itemSnap.data() as QuotationItem);
 }
 
+async function getNextQuoteNumber(): Promise<string> {
+  const now = new Date();
+  const year = now.getFullYear();
+  const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'), limit(1));
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) {
+    return `Q-${year}-0001`;
+  }
+
+  const latest = mapQuotation(snapshot.docs[0]);
+  const match = latest.quoteNumber?.match(/^Q-(\d{4})-(\d{4})$/);
+  const previousYear = match ? Number(match[1]) : year;
+  const previousCounter = match ? Number(match[2]) : 0;
+  const nextCounter = previousYear === year ? previousCounter + 1 : 1;
+
+  return `Q-${year}-${String(nextCounter).padStart(4, '0')}`;
+}
+
 export async function getQuotationWithMeta(id: string): Promise<Quotation | null> {
   const docRef = doc(db, COLLECTION, id);
   const snapshot = await getDoc(docRef);
@@ -91,9 +111,11 @@ export async function addOrReplaceQuotationItems(quoteId: string, items: Quotati
 export async function createQuotation(payload: QuotationPayload, items: QuotationItemPayload[]): Promise<string> {
   const docRef = doc(collection(db, COLLECTION));
   const quoteId = docRef.id;
+  const quoteNumber = payload.quoteNumber || (await getNextQuoteNumber());
   const basePayload = stripUndefined({
     ...payload,
     quoteId,
+    quoteNumber,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -117,7 +139,7 @@ export async function duplicateQuotation(id: string, overrides?: Partial<Quotati
   const clonePayload: QuotationPayload = {
     ...base,
     quoteId: undefined,
-    quoteNumber: `${base.quoteNumber}-COPY`,
+    quoteNumber: undefined,
     status: 'Draft',
     isArchived: false,
     createdAt: undefined,
@@ -126,4 +148,20 @@ export async function duplicateQuotation(id: string, overrides?: Partial<Quotati
   } as unknown as QuotationPayload;
 
   return createQuotation(clonePayload, items || []);
+}
+
+export async function deleteQuotation(id: string): Promise<void> {
+  const batch = writeBatch(db);
+  const itemsCollection = collection(db, COLLECTION, id, 'items');
+  const itemsSnapshot = await getDocs(itemsCollection);
+  itemsSnapshot.forEach((item) => batch.delete(item.ref));
+
+  const docRef = doc(db, COLLECTION, id);
+  batch.delete(docRef);
+
+  await batch.commit();
+}
+
+export async function fetchNextQuoteNumber(): Promise<string> {
+  return getNextQuoteNumber();
 }
