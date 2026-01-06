@@ -52,6 +52,8 @@ interface ClientFormState {
 interface Props {
   initialClient?: Client;
   mode: ClientFormMode;
+  onSuccess?: (clientId?: string) => void;
+  onCancel?: () => void;
 }
 
 const defaultState: ClientFormState = {
@@ -137,7 +139,7 @@ function getInitialState(client?: Client): ClientFormState {
   };
 }
 
-export default function ClientForm({ initialClient, mode }: Props) {
+export default function ClientForm({ initialClient, mode, onSuccess, onCancel }: Props) {
   const router = useRouter();
   const [formState, setFormState] = useState<ClientFormState>(getInitialState(initialClient));
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -197,11 +199,14 @@ export default function ClientForm({ initialClient, mode }: Props) {
       if (mode === 'edit' && initialClient) {
         await updateClient(initialClient.id, payload);
         setFeedback('Client updated successfully.');
+        onSuccess?.(initialClient.id);
+        if (!onSuccess) router.push('/clients');
       } else {
-        await createClient(payload);
+        const newId = await createClient(payload);
         setFeedback('Client created successfully.');
+        onSuccess?.(newId);
+        if (!onSuccess) router.push('/clients');
       }
-      router.push('/clients');
     } catch (err) {
       if (err instanceof ZodError) {
         handleErrorMapping(err);
@@ -240,7 +245,8 @@ export default function ClientForm({ initialClient, mode }: Props) {
         await archiveClient(initialClient.id);
         setFeedback('Client archived.');
       }
-      router.push('/clients');
+      onSuccess?.(initialClient.id);
+      if (!onSuccess) router.push('/clients');
     } catch (err) {
       console.error(err);
       setFeedback('Unable to update archive status.');
@@ -256,16 +262,27 @@ export default function ClientForm({ initialClient, mode }: Props) {
           <h1 className="text-2xl font-semibold text-gray-900">{mode === 'edit' ? 'Edit Client' : 'Add Client'}</h1>
           <p className="text-sm text-gray-600">All fields marked with * are mandatory.</p>
         </div>
-        {mode === 'edit' && initialClient && (
-          <button
-            type="button"
-            onClick={toggleArchive}
-            disabled={submitting}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            {initialClient.isArchived ? 'Restore Client' : 'Archive Client'}
-          </button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+          )}
+          {mode === 'edit' && initialClient && (
+            <button
+              type="button"
+              onClick={toggleArchive}
+              disabled={submitting}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              {initialClient.isArchived ? 'Restore Client' : 'Archive Client'}
+            </button>
+          )}
+        </div>
       </div>
 
       {feedback && (
