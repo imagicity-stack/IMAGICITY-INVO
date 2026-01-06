@@ -1,224 +1,326 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import { collection, doc, getDoc, getDocs, getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+const data = {
+  invoiceNo: "Q-2026-0106-3285",
+  createdBy: "dewesh",
+  status: "Sent",
 
-let downloadedFileName = "quotation.pdf";
-let quotationLoaded = false;
+  issueDate: "06 Jan 2026",
+  validUntil: "20 Jan 2026",
 
-function showStatus(message, type = "info") {
-  const el = document.getElementById("status");
-  if (!el) return;
+  client: {
+    legal: "dewesh",
+    brand: "ddwe",
+    email: "dewshkk@gmail.com",
+    phone: "6203493677",
+    address: "deweshkk, hazaribagh",
+    gst: "AAGCIBQ41Z"
+  },
 
-  el.textContent = message;
-  el.classList.remove("status--hidden", "status--info", "status--error");
-  el.classList.add(type === "error" ? "status--error" : "status--info");
+  items: [
+    { name: "dfdf", qty: 1, rate: 2134, gst: 18 }
+  ]
+};
 
-  if (!message) {
-    el.classList.add("status--hidden");
-  }
-}
+const money = n => Number(n).toFixed(2);
 
-function parseFirebaseConfig() {
-  const configNode = document.getElementById("firebase-config");
-  if (!configNode) {
-    throw new Error("Missing Firebase configuration block (firebase-config)");
-  }
+document.getElementById("invoiceNo").textContent = data.invoiceNo;
+document.getElementById("createdBy").textContent = data.createdBy;
+document.getElementById("status").textContent = data.status;
+document.getElementById("statusText").textContent = data.status;
 
-  try {
-    const parsed = JSON.parse(configNode.textContent || "{}");
-    if (!parsed.projectId) {
-      throw new Error("Firebase config must include at least a projectId");
-    }
-    return parsed;
-  } catch (err) {
-    throw new Error("Invalid Firebase configuration JSON");
-  }
-}
+document.getElementById("issueDate").textContent = data.issueDate;
+document.getElementById("validUntil").textContent = data.validUntil;
 
-function resolveQuotationId() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("id") || document.body.dataset.quotationId || null;
-}
+document.getElementById("legal").textContent = data.client.legal;
+document.getElementById("brand").textContent = data.client.brand;
+document.getElementById("email").textContent = data.client.email;
+document.getElementById("phone").textContent = data.client.phone;
+document.getElementById("address").textContent = data.client.address;
+document.getElementById("gst").textContent = data.client.gst;
 
-function formatCurrency(value, currency = "USD") {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-  }).format(value || 0);
-}
+let subtotal = 0;
+let tax = 0;
 
-function formatDate(value) {
-  if (!value) return "—";
-  const date = value.toDate ? value.toDate() : new Date(value);
-  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(date);
-}
+const tbody = document.getElementById("items");
 
-function buildAddress(address) {
-  if (!address) return "";
-  const parts = [address.line1, address.line2, address.city, address.state, address.pincode, address.country].filter(Boolean);
-  return parts.join(", ");
-}
+data.items.forEach(i => {
+  const line = i.qty * i.rate;
+  const lineTax = line * i.gst / 100;
 
-async function fetchQuotation(db, quotationId) {
-  const quotationRef = doc(db, "quotations", quotationId);
-  const snapshot = await getDoc(quotationRef);
+  subtotal += line;
+  tax += lineTax;
 
-  if (!snapshot.exists()) {
-    throw new Error("Quotation not found. Double-check the ID and access rules.");
-  }
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td>${i.name}</td>
+    <td class="right">${i.qty}</td>
+    <td class="right">${money(i.rate)}</td>
+    <td class="right">${i.gst}%</td>
+    <td class="right"><strong>${money(line + lineTax)}</strong></td>
+  `;
+  tbody.appendChild(tr);
+});
 
-  const data = snapshot.data();
-  const itemsSnapshot = await getDocs(collection(db, "quotations", quotationId, "items"));
-  const items = itemsSnapshot.docs.map((itemSnap) => itemSnap.data());
+document.getElementById("subtotal").textContent = money(subtotal);
+document.getElementById("tax").textContent = money(tax);
+document.getElementById("grand").textContent = money(subtotal + tax);
+const quotation = {
+      company: {
+        name: "IMAGICITY",
+        address: "Remote First, India",
+        gstin: "20ABCDE1234F1Z5",
+        email: "billing@imagicity.in",
+        phone: "+91 90000 00000"
+      },
+      quoteNumber: "Q-2026-0007",
+      issueDate: "06 Jan 2026",
+      validUntil: "20 Jan 2026",
+      currency: "INR",
 
-  const subtotalFromItems = items.reduce((sum, item) => sum + (item.lineSubTotal ?? item.quantity * (item.rateSnapshot || 0)), 0);
-  const taxFromItems = items.reduce((sum, item) => sum + (item.lineTax || 0), 0);
-  const totalFromItems = subtotalFromItems + taxFromItems;
+      clientSnapshot: {
+        legalName: "Arihant Agencies",
+        brandName: "Arihant",
+        email: "accounts@arihant.example",
+        phone: "+91 98765 43210",
+        billingAddress: {
+          line1: "Near Main Market Road",
+          line2: "Opp. City Tower",
+          city: "Hazaribagh",
+          state: "Jharkhand",
+          country: "India",
+          pincode: "825301",
+          stateCode: "20"
+        },
+        gstRegistered: true,
+        gstin: "20ABCDE1234F1Z5"
+      },
 
-  const currency = data.currency || "USD";
+      items: Array.from({ length: 5 }).map((_, i) => ({
+        nameSnapshot: `Service Item ${i + 1}`,
+        descriptionSnapshot: "Short description for this service item. This can be longer and will wrap cleanly.",
+        unitLabelSnapshot: "project",
+        quantity: 1,
+        rateSnapshot: 1200 + i * 50,
+        gstRateSnapshot: 18,
+        taxIncludedSnapshot: false
+      })),
 
-  return {
-    client: {
-      name: data.clientSnapshot?.brandName || data.clientSnapshot?.legalName || "Client",
-      address: buildAddress(data.clientSnapshot?.billingAddress),
-      email: data.clientSnapshot?.email || "",
-      phone: data.clientSnapshot?.phone || "",
-    },
-    quotation: {
-      number: data.quoteNumber || data.quoteId || quotationId,
-      issueDate: data.issueDate,
-      dueDate: data.validUntil,
-      preparedBy: data.createdByName || "Sales Team",
-      currency,
-    },
-    contact: {
-      phone: data.clientSnapshot?.phone || data.clientSnapshot?.billingAddress?.phone || "",
-      email: data.clientSnapshot?.email || "",
-      address: buildAddress(data.clientSnapshot?.billingAddress),
-    },
-    terms: data.terms || "",
-    items,
-    totals: {
-      subtotal: data.subTotal ?? subtotalFromItems,
-      tax: data.taxTotal ?? taxFromItems,
-      total: data.grandTotal ?? totalFromItems,
-    },
-  };
-}
+      discountType: "Percent",
+      discountValue: 10,
 
-function renderQuotation(data) {
-  const { client, quotation, contact, terms, items, totals } = data;
+      notes: "Scope is limited to items listed above. Any additional revisions or new deliverables will be billed separately.",
+      terms: [
+        "Prices are valid until the Valid Until date mentioned.",
+        "50% advance to start work, remaining before final delivery.",
+        "Timeline starts after advance payment and final content approval.",
+        "Taxes will be applied as per GST rules."
+      ]
+    };
 
-  document.getElementById("client-name").textContent = client.name;
-  document.getElementById("client-address").textContent = client.address;
-  document.getElementById("client-email").textContent = client.email;
-
-  document.getElementById("quotation-date").textContent = `Issued: ${formatDate(quotation.issueDate)}`;
-  document.getElementById("invoice-number").textContent = quotation.number;
-  document.getElementById("due-date").textContent = formatDate(quotation.dueDate);
-  document.getElementById("prepared-by").textContent = quotation.preparedBy;
-
-  document.getElementById("contact-phone").textContent = contact.phone || "—";
-  document.getElementById("contact-email").textContent = contact.email || "—";
-  document.getElementById("contact-address").textContent = contact.address || "—";
-
-  const termsList = document.getElementById("terms-list");
-  termsList.innerHTML = "";
-  const normalizedTerms = Array.isArray(terms)
-    ? terms
-    : String(terms)
-        .split(/\r?\n/)
-        .map((term) => term.trim())
-        .filter(Boolean);
-
-  normalizedTerms.forEach((term) => {
-    const li = document.createElement("li");
-    li.textContent = term;
-    termsList.appendChild(li);
-  });
-
-  const itemsBody = document.getElementById("items-body");
-  itemsBody.innerHTML = "";
-  items.forEach((item) => {
-    const lineSubtotal = item.lineSubTotal ?? item.quantity * (item.rateSnapshot || 0);
-    const amount = item.lineTotal ?? lineSubtotal + (item.lineTax || 0);
-    const row = document.createElement("div");
-    row.className = "table__row table__row--body";
-    row.innerHTML = `
-      <div>
-        <div>${item.nameSnapshot}</div>
-        ${item.descriptionSnapshot ? `<p class="muted">${item.descriptionSnapshot}</p>` : ""}
-      </div>
-      <div>${item.quantity}</div>
-      <div>${formatCurrency(item.rateSnapshot, quotation.currency)}</div>
-      <div>${formatCurrency(amount, quotation.currency)}</div>
-    `;
-    itemsBody.appendChild(row);
-  });
-
-  document.getElementById("subtotal").textContent = formatCurrency(totals.subtotal, quotation.currency);
-  document.getElementById("tax").textContent = formatCurrency(totals.tax, quotation.currency);
-  document.getElementById("total").textContent = formatCurrency(totals.total, quotation.currency);
-
-  downloadedFileName = `${quotation.number}.pdf`;
-  quotationLoaded = true;
-
-  const downloadBtn = document.getElementById("download-btn");
-  if (downloadBtn) {
-    downloadBtn.disabled = false;
-    downloadBtn.textContent = "Download PDF";
-  }
-}
-
-function downloadPDF() {
-  if (!quotationLoaded) {
-    showStatus("Please wait for the quotation data to finish loading before downloading.", "error");
-    return;
-  }
-
-  const element = document.querySelector(".page");
-  const options = {
-    filename: downloadedFileName,
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: "px", format: "a4", orientation: "portrait" },
-    margin: 10,
-  };
-
-  html2pdf().from(element).set(options).save();
-}
-
-async function bootstrap() {
-  const downloadBtn = document.getElementById("download-btn");
-  if (downloadBtn) {
-    downloadBtn.disabled = true;
-    downloadBtn.textContent = "Preparing PDF…";
-  }
-
-  try {
-    showStatus("Connecting to Firebase and loading quotation…", "info");
-    const config = parseFirebaseConfig();
-    const quotationId = resolveQuotationId();
-    if (!quotationId) {
-      throw new Error("Missing quotation id. Provide it via ?id= or data-quotation-id.");
+    function formatINR(value) {
+      const n = Number(value || 0);
+      return "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
     }
 
-    const app = initializeApp(config);
-    const db = getFirestore(app);
-    const quotation = await fetchQuotation(db, quotationId);
-    renderQuotation(quotation);
-    showStatus("", "info");
-  } catch (err) {
-    console.error(err);
-    showStatus(err.message || "Unable to load quotation data", "error");
-    if (downloadBtn) {
-      downloadBtn.textContent = "Load failed";
+    function amountInWordsINR(n) {
+      const ones = ["","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"];
+      const tens = ["","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"];
+      function toWords(num) {
+        num = Math.floor(num);
+        if (num === 0) return "zero";
+        if (num < 20) return ones[num];
+        if (num < 100) return tens[Math.floor(num/10)] + (num%10 ? " " + ones[num%10] : "");
+        if (num < 1000) return ones[Math.floor(num/100)] + " hundred" + (num%100 ? " " + toWords(num%100) : "");
+        if (num < 100000) return toWords(Math.floor(num/1000)) + " thousand" + (num%1000 ? " " + toWords(num%1000) : "");
+        if (num < 10000000) return toWords(Math.floor(num/100000)) + " lakh" + (num%100000 ? " " + toWords(num%100000) : "");
+        return toWords(Math.floor(num/10000000)) + " crore" + (num%10000000 ? " " + toWords(num%10000000) : "");
+      }
+      const rupees = Math.round(Number(n || 0));
+      const words = toWords(rupees);
+      return "Amount in words: " + words.charAt(0).toUpperCase() + words.slice(1) + " rupees only.";
     }
-  }
 
-  if (downloadBtn) {
-    downloadBtn.addEventListener("click", downloadPDF);
-  }
-}
+    function calcLine(item) {
+      const qty = Number(item.quantity || 0);
+      const rate = Number(item.rateSnapshot || 0);
+      const gst = Number(item.gstRateSnapshot || 0);
+      const base = qty * rate;
 
-window.addEventListener("DOMContentLoaded", bootstrap);
+      if (item.taxIncludedSnapshot) {
+        const divisor = 1 + (gst / 100);
+        const sub = base / divisor;
+        const tax = base - sub;
+        return { lineSubTotal: sub, lineTax: tax, lineTotal: base };
+      }
+
+      const tax = base * (gst / 100);
+      return { lineSubTotal: base, lineTax: tax, lineTotal: base + tax };
+    }
+
+    function calcTotals(q) {
+      let subTotal = 0;
+      let taxTotal = 0;
+
+      q.items.forEach(it => {
+        const line = calcLine(it);
+        subTotal += line.lineSubTotal;
+        taxTotal += line.lineTax;
+      });
+
+      let discountAmt = 0;
+      if (q.discountType === "Percent") discountAmt = (subTotal * Number(q.discountValue || 0)) / 100;
+      else if (q.discountType === "Flat") discountAmt = Number(q.discountValue || 0);
+
+      const subAfterDiscount = Math.max(0, subTotal - discountAmt);
+
+      const taxRatio = subTotal > 0 ? (taxTotal / subTotal) : 0;
+      const taxAfterDiscount = subAfterDiscount * taxRatio;
+
+      const grand = subAfterDiscount + taxAfterDiscount;
+
+      return { subTotal, taxTotal: taxAfterDiscount, grandTotal: grand, discountAmt };
+    }
+
+    function setText(id, value) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = value ?? "";
+    }
+
+    function render() {
+      setText("companyName", quotation.company.name);
+      setText(
+        "companyMeta",
+        `${quotation.company.address}\nGSTIN: ${quotation.company.gstin}\n${quotation.company.email} | ${quotation.company.phone}`
+      );
+      setText("signCompany", quotation.company.name);
+      setText("footerContact", `${quotation.company.email} | ${quotation.company.phone}`);
+
+      setText("quoteNumber", quotation.quoteNumber);
+      setText("issueDate", quotation.issueDate);
+      setText("validUntil", quotation.validUntil);
+      setText("currency", quotation.currency);
+
+      setText("clientName", quotation.clientSnapshot.legalName);
+      setText("clientBrand", quotation.clientSnapshot.brandName ? quotation.clientSnapshot.brandName : "");
+
+      const a = quotation.clientSnapshot.billingAddress;
+      const addr = [
+        a.line1,
+        a.line2 ? a.line2 : null,
+        `${a.city}, ${a.state} ${a.pincode}`,
+        a.country
+      ].filter(Boolean).join("\n");
+      setText("clientAddress", addr);
+
+      setText("clientEmail", quotation.clientSnapshot.email || "NA");
+      setText("clientPhone", quotation.clientSnapshot.phone || "NA");
+
+      const gstReg = quotation.clientSnapshot.gstRegistered ? "GST Registered: Yes" : "GST Registered: No";
+      setText("gstRegisteredPill", gstReg);
+      setText("stateCodePill", `State Code: ${a.stateCode}`);
+
+      const gstinText = quotation.clientSnapshot.gstRegistered ? (quotation.clientSnapshot.gstin || "NA") : "Not Applicable";
+      setText("clientGstin", gstinText);
+
+      const totals = calcTotals(quotation);
+      setText("subTotal", formatINR(totals.subTotal));
+      setText("taxTotal", formatINR(totals.taxTotal));
+      setText("grandTotal", formatINR(totals.grandTotal));
+      setText("amountWords", amountInWordsINR(totals.grandTotal));
+
+      const discountLine = document.getElementById("discountLine");
+      if (quotation.discountType === "None" || totals.discountAmt <= 0) {
+        discountLine.style.display = "none";
+      } else {
+        discountLine.style.display = "flex";
+        const label = quotation.discountType === "Percent"
+          ? `Discount (${quotation.discountValue}%)`
+          : "Discount (Flat)";
+        setText("discountLabel", label);
+        setText("discountValue", "-" + formatINR(totals.discountAmt));
+      }
+
+      const tbody = document.getElementById("itemsBody");
+      tbody.innerHTML = "";
+
+      quotation.items.forEach((it, idx) => {
+        const line = calcLine(it);
+
+        const tr = document.createElement("tr");
+
+        const tdSno = document.createElement("td");
+        tdSno.className = "col-sno";
+        tdSno.textContent = String(idx + 1);
+
+        const tdDesc = document.createElement("td");
+        const name = document.createElement("div");
+        name.className = "itemName";
+        name.textContent = it.nameSnapshot;
+
+        const desc = document.createElement("div");
+        desc.className = "itemDesc";
+        desc.textContent = it.descriptionSnapshot || "";
+
+        tdDesc.appendChild(name);
+        if (it.descriptionSnapshot) tdDesc.appendChild(desc);
+
+        const tdUnit = document.createElement("td");
+        tdUnit.className = "col-unit";
+        tdUnit.textContent = it.unitLabelSnapshot;
+
+        const tdQty = document.createElement("td");
+        tdQty.className = "col-qty mono";
+        tdQty.textContent = String(it.quantity);
+
+        const tdRate = document.createElement("td");
+        tdRate.className = "col-rate mono";
+        tdRate.textContent = formatINR(it.rateSnapshot);
+
+        const tdTax = document.createElement("td");
+        tdTax.className = "col-tax mono";
+        tdTax.textContent = `${Number(it.gstRateSnapshot || 0)}%`;
+
+        const tdAmt = document.createElement("td");
+        tdAmt.className = "col-amt mono";
+        tdAmt.textContent = formatINR(line.lineTotal);
+
+        tr.appendChild(tdSno);
+        tr.appendChild(tdDesc);
+        tr.appendChild(tdUnit);
+        tr.appendChild(tdQty);
+        tr.appendChild(tdRate);
+        tr.appendChild(tdTax);
+        tr.appendChild(tdAmt);
+
+        tbody.appendChild(tr);
+      });
+
+      setText("notes", quotation.notes || "NA");
+
+      const termsEl = document.getElementById("terms");
+      termsEl.innerHTML = "";
+      (quotation.terms || []).forEach(t => {
+        const li = document.createElement("li");
+        li.textContent = t;
+        termsEl.appendChild(li);
+      });
+    }
+
+    function setupActions() {
+      document.getElementById("btnPrint").addEventListener("click", () => window.print());
+
+      document.getElementById("btnDownload").addEventListener("click", async () => {
+        const root = document.getElementById("quoteRoot");
+        const opt = {
+          margin: [8, 8, 8, 8],
+          filename: `${quotation.quoteNumber}.pdf`,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+        };
+        await html2pdf().set(opt).from(root).save();
+      });
+    }
+
+    render();
+    setupActions();
