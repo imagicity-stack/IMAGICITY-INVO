@@ -22,6 +22,18 @@ const seededServices = [
   { title: 'Content + Social', price: 2400, cycle: 'monthly', description: 'Short-form video, copy, scheduling, and community.' },
 ];
 
+const forecastSeries = [62, 78, 70, 88, 95, 90, 102];
+const advancedMetrics = [
+  { label: 'Win rate', value: '68%', delta: '+6.2% vs last month' },
+  { label: 'Average payment time', value: '12.4 days', delta: '-1.1 days vs target' },
+  { label: 'Recurring retention', value: '92%', delta: '+3.4% stabilized' },
+];
+const channelBreakdown = [
+  { label: 'Services', value: 52, tone: 'red' },
+  { label: 'Invoices', value: 32, tone: 'yellow' },
+  { label: 'Quotations', value: 16, tone: 'muted' },
+];
+
 function SectionHeader({ icon, title, actions }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
@@ -292,6 +304,98 @@ export default function ImvoApp() {
               <StatCard title="Monthly revenue" value={`$${(totals.paid + totals.outstanding).toLocaleString()}`} delta="Up 12.4% vs last month" pill="Live" />
               <StatCard title="Outstanding" value={`$${totals.outstanding.toLocaleString()}`} delta="2 invoices waiting" />
               <StatCard title="Paid invoices" value={`$${totals.paid.toLocaleString()}`} delta="On-time: 92%" />
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="card relative overflow-hidden bg-gradient-to-br from-brandRed/5 via-white to-brandYellow/30">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(239,68,68,0.12),transparent_45%),radial-gradient(circle_at_80%_0%,rgba(234,179,8,0.14),transparent_40%)]" aria-hidden />
+                <div className="relative flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="section-title">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandRed/10 text-brandRed">📊</span>
+                      <span>Advanced analytics</span>
+                    </div>
+                    <span className="badge bg-brandRed/10 text-brandRed">Realtime</span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600">Revenue velocity</p>
+                      <p className="text-3xl font-bold text-brandCharcoal">$ {(totals.paid + totals.outstanding + 8200).toLocaleString()}</p>
+                      <p className="text-sm text-emerald-700">Forecast +18.4% next cycle</p>
+                    </div>
+                    <div className="rounded-2xl border border-dashed border-brandRed/30 bg-white/60 px-4 py-3 text-sm font-semibold text-brandCharcoal">
+                      <p className="text-xs uppercase tracking-wide text-brandRed">Risk</p>
+                      <p>Delayed invoices: {invoices.filter((inv) => inv.status !== 'Paid').length}</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-gray-100 bg-white/70 p-4 shadow-inner">
+                    <div className="flex items-center justify-between text-sm font-semibold text-gray-600">
+                      <span>7-day momentum</span>
+                      <span className="text-brandRed">Scaled</span>
+                    </div>
+                    <div className="mt-4 flex items-end gap-2">
+                      {forecastSeries.map((point, idx) => (
+                        <div key={point} className="flex flex-1 flex-col items-center gap-2">
+                          <div
+                            className="w-full rounded-full bg-gradient-to-t from-brandRed to-brandYellow"
+                            style={{ height: `${point / 1.2}%` }}
+                          />
+                          <span className="text-[10px] font-semibold text-gray-500">D{idx + 1}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {advancedMetrics.map((metric) => (
+                      <div key={metric.label} className="rounded-2xl border border-gray-100 bg-white/80 px-4 py-3 shadow-sm">
+                        <p className="text-xs uppercase tracking-wide text-gray-500">{metric.label}</p>
+                        <p className="text-xl font-bold text-brandCharcoal">{metric.value}</p>
+                        <p className="text-sm text-emerald-700">{metric.delta}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="card space-y-4">
+                <div className="section-title">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandYellow/30 text-brandCharcoal">🧠</span>
+                  <span>Insight console</span>
+                </div>
+                <div className="rounded-2xl border border-dashed border-brandRed/20 bg-brandMuted p-4 text-sm text-brandCharcoal">
+                  <p className="font-semibold text-brandRed">AI note</p>
+                  <p className="mt-1 text-gray-700">
+                    Services are leading conversion this week. Push bundled invoices to capture the 18% momentum and reduce the outstanding queue.
+                  </p>
+                </div>
+
+                <div className="grid gap-3">
+                  {channelBreakdown.map((channel) => (
+                    <div key={channel.label} className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <span className={`badge ${channel.tone === 'red' ? 'bg-brandRed/10 text-brandRed' : channel.tone === 'yellow' ? 'bg-brandYellow/30 text-brandCharcoal' : 'bg-gray-100 text-gray-700'}`}>
+                          {channel.label}
+                        </span>
+                        <p className="text-sm text-gray-600">Share of wins</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-100">
+                          <div className={`h-full rounded-full ${channel.tone === 'red' ? 'bg-brandRed' : channel.tone === 'yellow' ? 'bg-brandYellow' : 'bg-gray-400'}`} style={{ width: `${channel.value}%` }} />
+                        </div>
+                        <p className="font-semibold text-brandCharcoal">{channel.value}%</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="rounded-2xl border border-gray-100 bg-gradient-to-r from-brandRed/10 to-brandYellow/20 px-4 py-3 text-sm text-brandCharcoal">
+                  <p className="font-semibold">Health: stable</p>
+                  <p className="text-gray-700">Your outstanding to paid ratio is balanced. Keep payment cycles under 14 days to maintain the trend.</p>
+                </div>
+              </div>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
