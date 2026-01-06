@@ -43,6 +43,7 @@ export default function ServiceForm({ mode, initialData, onSubmit, onCancel, sub
     isArchived: initialData?.isArchived ?? false,
   }));
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [newCategory, setNewCategory] = useState('');
 
   const deliverablesValue = useMemo(() => {
     if (Array.isArray(form.deliverables)) {
@@ -88,6 +89,21 @@ export default function ServiceForm({ mode, initialData, onSubmit, onCancel, sub
       setForm((prev) => ({ ...prev, category: categories[0] }));
     }
   }, [categories, form.category]);
+
+  const categoryOptions = useMemo(() => {
+    if (form.category && !categories.includes(form.category)) {
+      return [...categories, form.category];
+    }
+    return categories;
+  }, [categories, form.category]);
+
+  const handleSaveCategory = async () => {
+    if (!newCategory.trim()) return;
+    const trimmed = newCategory.trim();
+    handleChange('category', trimmed);
+    setNewCategory('');
+    await onAddCategory?.(trimmed);
+  };
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
@@ -147,28 +163,44 @@ export default function ServiceForm({ mode, initialData, onSubmit, onCancel, sub
         <label className="text-sm font-semibold text-gray-700 space-y-1">
           <div className="flex items-center justify-between">
             <span>Category</span>
-            <button
-              type="button"
-              onClick={() => onAddCategory?.(form.category)}
-              className="text-xs font-semibold text-brandPrimary underline"
-            >
-              Save to categories
-            </button>
           </div>
-          <input
-            list="service-categories"
+          <select
             value={form.category}
             onChange={(e) => handleChange('category', e.target.value)}
-            placeholder="Type or select a category"
             className="w-full rounded-2xl border border-gray-200 px-3 py-2"
-          />
-          <datalist id="service-categories">
-            {categories.map((option) => (
-              <option key={option} value={option} />
+          >
+            <option value="">Select a category</option>
+            {categoryOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
             ))}
-          </datalist>
+          </select>
           {errors.category && <p className="text-xs text-rose-600">{errors.category}</p>}
-          {!categories.length && <p className="text-xs text-gray-500">No categories yet—type a new one to create it.</p>}
+          {!categories.length && <p className="text-xs text-gray-500">No categories yet—add one below.</p>}
+          <div className="flex flex-col gap-2 rounded-2xl bg-brandMuted/60 p-3">
+            <p className="text-xs font-semibold text-gray-600">Add a new category</p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                type="text"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                placeholder="E.g. Consulting"
+                className="w-full rounded-2xl border border-gray-200 px-3 py-2"
+              />
+              <button
+                type="button"
+                onClick={handleSaveCategory}
+                disabled={!newCategory.trim() || submitting}
+                className="rounded-full bg-brandPrimary px-4 py-2 text-xs font-semibold text-white shadow disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Save & select
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-500">
+              New categories are saved for reuse and automatically selected for this service.
+            </p>
+          </div>
         </label>
         <label className="text-sm font-semibold text-gray-700">
           Status

@@ -2,14 +2,15 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { getAuth, signOut } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useMemo, useState } from 'react';
 
 import ClientDetail from './clients/ClientDetail';
 import ClientForm from './clients/ClientForm';
 import ClientTable from './clients/ClientTable';
 import { archiveClient, deleteClient, fetchClients, restoreClient } from '../lib/clients/clientService';
-import { app } from '../lib/firebase';
+import { app, db } from '../lib/firebase';
 import ServicesSection from '../src/components/services/ServicesSection';
 import { listServices } from '../src/lib/services/serviceService';
 
@@ -206,6 +207,8 @@ export default function ImvoApp() {
   const [invoices, setInvoices] = useState([]);
   const [quotations, setQuotations] = useState([]);
 
+  const [authReady, setAuthReady] = useState(false);
+
   const [invoiceForm, setInvoiceForm] = useState({
     client: '',
     service: '',
@@ -222,6 +225,38 @@ export default function ImvoApp() {
   });
 
   const [signingOut, setSigningOut] = useState(false);
+
+  useEffect(() => {
+    const auth = getAuth(app);
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setAuthReady(false);
+        setClientsError('Please sign in to access the dashboard.');
+        router.replace('/');
+        return;
+      }
+
+      try {
+        const profileSnap = await getDoc(doc(db, 'users', user.uid));
+        const role = profileSnap.exists() ? profileSnap.data().role : null;
+
+        if (role !== 'admin') {
+          await signOut(auth);
+          setClientsError('You do not have permission to access this workspace.');
+          router.replace('/');
+          return;
+        }
+
+        setAuthReady(true);
+      } catch (error) {
+        setClientsError('Unable to verify access. Please try signing in again.');
+        router.replace('/');
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -305,13 +340,15 @@ export default function ImvoApp() {
   };
 
   useEffect(() => {
+    if (!authReady) return;
     loadClients();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, includeArchived]);
+  }, [authReady, statusFilter, includeArchived]);
 
   useEffect(() => {
+    if (!authReady) return;
     loadServices();
-  }, []);
+  }, [authReady]);
 
   useEffect(() => {
     if (clients.length && !selectedClient) {
