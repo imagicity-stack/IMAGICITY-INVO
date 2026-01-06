@@ -10,6 +10,7 @@ import ClientForm from './clients/ClientForm';
 import ClientTable from './clients/ClientTable';
 import { archiveClient, deleteClient, fetchClients, restoreClient } from '../lib/clients/clientService';
 import { app } from '../lib/firebase';
+import ServicesSection from '../src/components/services/ServicesSection';
 
 const navItems = [
   { key: 'dashboard', label: 'Dashboard', icon: '/dashboard.svg' },
@@ -204,7 +205,7 @@ export default function ImvoApp() {
   const [includeArchived, setIncludeArchived] = useState(false);
   const [search, setSearch] = useState('');
 
-  const [services, setServices] = useState(seededServices);
+  const services = seededServices;
   const [invoices, setInvoices] = useState([]);
   const [quotations, setQuotations] = useState([]);
 
@@ -223,7 +224,6 @@ export default function ImvoApp() {
     status: 'Draft',
   });
 
-  const [serviceForm, setServiceForm] = useState({ title: '', price: '', cycle: 'monthly', description: '' });
   const [signingOut, setSigningOut] = useState(false);
 
   const handleSignOut = async () => {
@@ -349,13 +349,6 @@ export default function ImvoApp() {
     if (!quoteForm.client) return;
     const nextId = `QTE-${2060 + quotations.length}`;
     setQuotations([{ ...quoteForm, id: nextId }, ...quotations]);
-  };
-
-  const handleServiceSubmit = (e) => {
-    e.preventDefault();
-    if (!serviceForm.title || !serviceForm.price) return;
-    setServices([{ ...serviceForm, price: Number(serviceForm.price) }, ...services]);
-    setServiceForm({ title: '', price: '', cycle: 'monthly', description: '' });
   };
 
   const SectionWrapper = ({ children }) => <div className="space-y-6">{children}</div>;
@@ -916,83 +909,9 @@ export default function ImvoApp() {
 
             {active === 'services' && (
               <SectionWrapper>
-            <SectionHeader icon="/services.svg" title="Services" />
-            <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
-              <div className="card space-y-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-lg font-semibold">Service catalog</p>
-                  <Pill tone="secondary">Visible to sales</Pill>
-                </div>
-                <div className="space-y-3">
-                  {services.map((service, idx) => (
-                    <div key={`${service.title}-${idx}`} className="flex flex-col gap-2 rounded-2xl border border-gray-100 bg-brandMuted p-4">
-                      <div className="flex items-center justify-between">
-                        <p className="font-semibold text-brandCharcoal">{service.title}</p>
-                        <Pill tone="primary">{service.cycle}</Pill>
-                      </div>
-                      <p className="text-sm text-gray-500">{service.description || 'No description added yet.'}</p>
-                      <p className="text-lg font-bold text-brandCharcoal">${service.price.toLocaleString()}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <form onSubmit={handleServiceSubmit} className="card space-y-4">
-                <div className="flex items-start justify-between">
-                  <p className="text-lg font-semibold">Create service</p>
-                  <Pill tone="primary">New</Pill>
-                </div>
-                <label className="text-sm font-semibold text-gray-600">
-                  Title
-                  <input
-                    type="text"
-                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                    value={serviceForm.title}
-                    onChange={(e) => setServiceForm({ ...serviceForm, title: e.target.value })}
-                  />
-                </label>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <label className="text-sm font-semibold text-gray-600">
-                    Price (USD)
-                    <input
-                      type="number"
-                      className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                      value={serviceForm.price}
-                      onChange={(e) => setServiceForm({ ...serviceForm, price: e.target.value })}
-                    />
-                  </label>
-                  <label className="text-sm font-semibold text-gray-600">
-                    Cycle
-                    <select
-                      className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                      value={serviceForm.cycle}
-                      onChange={(e) => setServiceForm({ ...serviceForm, cycle: e.target.value })}
-                    >
-                      <option value="monthly">Monthly</option>
-                      <option value="quarterly">Quarterly</option>
-                      <option value="one-time">One time</option>
-                    </select>
-                  </label>
-                </div>
-                <label className="text-sm font-semibold text-gray-600">
-                  Description
-                  <textarea
-                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                    rows={3}
-                    value={serviceForm.description}
-                    onChange={(e) => setServiceForm({ ...serviceForm, description: e.target.value })}
-                  />
-                </label>
-                <button
-                  type="submit"
-                  className="rounded-full bg-brandPrimary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/30 transition hover:-translate-y-0.5"
-                >
-                  Save service
-                </button>
-              </form>
-            </div>
-          </SectionWrapper>
-        )}
+                <ServicesSection />
+              </SectionWrapper>
+            )}
           </section>
 
           {active === 'dashboard' && (
