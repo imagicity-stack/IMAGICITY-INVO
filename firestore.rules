@@ -25,6 +25,10 @@ service cloud.firestore {
       return !(field in data) || (data[field] is number && data[field] >= minValue);
     }
 
+    function optionalEnum(data, field, options) {
+      return !(field in data) || data[field] in options;
+    }
+
     function optionalBoolean(data, field) {
       return !(field in data) || data[field] is bool;
     }
@@ -75,17 +79,17 @@ service cloud.firestore {
     function isValidService(data, id) {
       return data.serviceId == id
         && nonEmptyString(data.name)
-        && data.type in ['Service', 'Package', 'Add-on']
-        && data.category in ['Branding', 'Web', 'Marketing', 'Ads', 'Content', 'Design', 'Other']
-        && data.pricingModel in ['Fixed', 'Hourly', 'Monthly', 'Per Unit']
-        && data.status in ['Active', 'Inactive']
+        && optionalEnum(data, 'type', ['Service', 'Package', 'Add-on'])
+        && optionalEnum(data, 'category', ['Branding', 'Web', 'Marketing', 'Ads', 'Content', 'Design', 'Other'])
+        && optionalEnum(data, 'pricingModel', ['Fixed', 'Hourly', 'Monthly', 'Per Unit'])
+        && optionalEnum(data, 'status', ['Active', 'Inactive'])
         && data.rate is number && data.rate >= 0
-        && data.gstRate is number && data.gstRate >= 0 && data.gstRate <= 28
-        && data.taxIncluded is bool
-        && data.requiresBrief is bool
-        && data.isArchived is bool
+        && optionalNumberMin(data, 'gstRate', 0) && (!("gstRate" in data) || data.gstRate <= 28)
+        && optionalBoolean(data, 'taxIncluded')
+        && optionalBoolean(data, 'requiresBrief')
+        && optionalBoolean(data, 'isArchived')
         && nonEmptyString(data.unitLabel)
-        && nonEmptyString(data.currency)
+        && optionalString(data, 'currency') && (!('currency' in data) || nonEmptyString(data.currency))
         && optionalString(data, 'description')
         && optionalString(data, 'notesInternal')
         && optionalNumberMin(data, 'turnaroundDays', 0)
