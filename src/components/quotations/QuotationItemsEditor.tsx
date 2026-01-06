@@ -126,7 +126,7 @@ export default function QuotationItemsEditor({ services, items, onChangeItems }:
                 Remove
               </button>
             </div>
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2">
               <label className="text-sm font-semibold text-gray-600">
                 Name
                 <input
@@ -185,7 +185,7 @@ export default function QuotationItemsEditor({ services, items, onChangeItems }:
                   disabled={item.source === 'service'}
                 />
               </label>
-              <div className="lg:col-span-2">
+              <div className="sm:col-span-2">
                 <label className="text-sm font-semibold text-gray-600">
                   Description
                   <textarea
