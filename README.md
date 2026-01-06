@@ -52,3 +52,31 @@ The sidebar uses SVG icons stored in `public/` (`dashboard.svg`, `invoice.svg`, 
 - **Local dev**: reuse the existing Firebase client at `lib/firebase.js`; no new environment variables are required. Ensure Firestore rules allow unauthenticated reads/writes for development if auth is disabled.
 - **Indexes**: current queries use equality filters only; no additional Firestore composite indexes are required.
 - **Troubleshooting**: if saving fails locally, confirm Firestore is enabled for the configured project and that the Firestore rules permit the operations without authentication.
+
+## Services Module
+- **Location**: UI components live in `src/components/services/`, schema and Firestore helpers in `src/lib/services/`, and the module is rendered inside the Services section of `components/ImvoApp.jsx`.
+- **Firestore collection**: `services`. Each document stores:
+  - `serviceId` (string, doc id)
+  - `name` (string)
+  - `type` (`Service` | `Package` | `Add-on`)
+  - `category` (`Branding` | `Web` | `Marketing` | `Ads` | `Content` | `Design` | `Other`)
+  - `description?` (string)
+  - `deliverables?` (string[])
+  - `pricingModel` (`Fixed` | `Hourly` | `Monthly` | `Per Unit`)
+  - `rate` (number)
+  - `currency` (string, default `INR`)
+  - `gstRate` (number, default `18`)
+  - `taxIncluded` (boolean, default `false`)
+  - `unitLabel` (string)
+  - `turnaroundDays?` (number)
+  - `requiresBrief` (boolean, default `true`)
+  - `internalCost?` (number)
+  - `notesInternal?` (string)
+  - `tags?` (string[])
+  - `status` (`Active` | `Inactive`)
+  - `isArchived` (boolean, default `false`)
+  - `createdAt`, `updatedAt` (Firestore `serverTimestamp`)
+- **Firestore settings**: enable Firestore and allow server timestamps. Queries use equality filters on `isArchived`, `category`, `pricingModel`, and `status` plus an `orderBy('name')`, so no composite indexes are needed.
+- **Archiving**: archive/restore toggles `isArchived` and also flips `status` between `Inactive` and `Active`. Archived items stay in the collection for future syncs.
+- **Undefined guard**: Firestore rejects `undefined`. Use `stripUndefined` from `src/lib/utils/stripUndefined.ts` before any writes/updates to avoid `Function DocumentReference.set() called with invalid data. Unsupported field value: undefined` errors.
+- **Sync guidance**: when invoices/quotations/CRM consume a service, call `buildInvoiceLineItemFromService` in `src/lib/services/serviceService.ts` to store immutable snapshots of names, rates, GST, unit labels, and tax-inclusion flags alongside the originating `serviceId`.
