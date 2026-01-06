@@ -3,9 +3,10 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
-import { db } from '../lib/firebase';
+import { app, db } from '../lib/firebase';
 
 async function authenticateAdmin(email, password) {
   const trimmedEmail = email.trim().toLowerCase();
@@ -15,26 +16,43 @@ async function authenticateAdmin(email, password) {
     throw new Error('Please enter both email and password.');
   }
 
-  const usersRef = collection(db, 'users');
-  const snapshot = await getDocs(query(usersRef, where('email', '==', trimmedEmail)));
+  const auth = getAuth(app);
 
-  if (snapshot.empty) {
-    throw new Error('No account found for that email.');
+  try {
+    const credential = await signInWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
+    const user = credential.user;
+
+    const profileRef = doc(db, 'users', user.uid);
+    const profileSnap = await getDoc(profileRef);
+
+    if (!profileSnap.exists()) {
+      throw new Error('No profile found for this account.');
+    }
+
+    const profile = { id: profileSnap.id, ...profileSnap.data() };
+
+    if (profile.role !== 'admin') {
+      await signOut(auth);
+      throw new Error('You must be an admin to enter the dashboard.');
+    }
+
+    return profile;
+  } catch (error) {
+    if (error instanceof Error && 'code' in error) {
+      const code = error.code;
+      if (code === 'auth/user-not-found') {
+        throw new Error('No account found for that email.');
+      }
+      if (code === 'auth/wrong-password') {
+        throw new Error('Password is incorrect.');
+      }
+      if (code === 'permission-denied') {
+        throw new Error('Permission denied. Verify Firestore rules allow admins to read their profile.');
+      }
+    }
+
+    throw new Error('Unable to sign in right now.');
   }
-
-  const matchedUser = snapshot.docs
-    .map((doc) => ({ id: doc.id, ...doc.data() }))
-    .find((user) => user.password === trimmedPassword);
-
-  if (!matchedUser) {
-    throw new Error('Password is incorrect.');
-  }
-
-  if (matchedUser.role !== 'admin') {
-    throw new Error('You must be an admin to enter the dashboard.');
-  }
-
-  return matchedUser;
 }
 
 const quickStats = [
