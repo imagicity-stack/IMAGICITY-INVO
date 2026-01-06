@@ -9,8 +9,12 @@ service cloud.firestore {
       return value is string && value.size() > 0;
     }
 
+    function isServerTimestamp(value) {
+      return value is timestamp || value == request.time;
+    }
+
     function optionalTimestamp(data, field) {
-      return !(field in data) || data[field] is timestamp;
+      return !(field in data) || isServerTimestamp(data[field]);
     }
 
     function optionalString(data, field) {
