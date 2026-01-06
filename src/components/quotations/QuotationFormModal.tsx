@@ -17,7 +17,7 @@ export default function QuotationFormModal({ open, onClose, initialData, onSubmi
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-6 shadow-xl md:max-w-4xl lg:max-w-5xl">
+      <div className="w-full max-w-4xl overflow-y-auto rounded-3xl bg-white p-6 shadow-xl">
         <div className="flex items-center justify-between">
           <p className="text-2xl font-bold text-brandCharcoal">{initialData ? 'Edit quotation' : 'New quotation'}</p>
           <button

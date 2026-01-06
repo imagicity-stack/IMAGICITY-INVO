@@ -202,168 +202,164 @@ export default function QuotationForm({ initialData, onSubmit, onCancel, submitt
   }, [clientMode, selectedClient]);
 
   return (
-    <form onSubmit={(e) => handleSubmit(e)} className="space-y-4">
+    <form onSubmit={(e) => handleSubmit(e)} className="mx-auto max-w-3xl space-y-4">
       {formError && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{formError}</p>}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="space-y-4">
-          <QuoteClientSelector
-            mode={clientMode}
-            setMode={setClientMode}
-            existingClients={clients}
-            selectedClientId={clientId}
-            onSelectClient={(client) => setClientId(client?.id || null)}
-            newClient={clientSnapshot}
-            onChangeNewClient={handleNewClientChange}
+
+      <QuoteClientSelector
+        mode={clientMode}
+        setMode={setClientMode}
+        existingClients={clients}
+        selectedClientId={clientId}
+        onSelectClient={(client) => setClientId(client?.id || null)}
+        newClient={clientSnapshot}
+        onChangeNewClient={handleNewClientChange}
+      />
+
+      <QuotationItemsEditor services={services} items={items} onChangeItems={setItems} />
+
+      <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-lg font-semibold text-brandCharcoal">Quote details</p>
+          {loadingPickers && <span className="text-xs text-gray-500">Loading pickers…</span>}
+        </div>
+        <label className="text-sm font-semibold text-gray-600">
+          Quote number
+          <input
+            className="mt-1 w-full rounded-2xl border border-gray-200 bg-gray-100 px-3 py-2"
+            value={quoteNumber}
+            readOnly
           />
-          <QuotationItemsEditor services={services} items={items} onChangeItems={setItems} />
+        </label>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="text-sm font-semibold text-gray-600">
+            Issue date
+            <input
+              type="date"
+              className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+              value={issueDate}
+              onChange={(e) => setIssueDate(e.target.value)}
+            />
+          </label>
+          <label className="text-sm font-semibold text-gray-600">
+            Valid until
+            <input
+              type="date"
+              className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+              value={validUntil}
+              onChange={(e) => setValidUntil(e.target.value)}
+            />
+          </label>
+        </div>
+        <label className="text-sm font-semibold text-gray-600">
+          Currency
+          <input
+            className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+          />
+        </label>
+        <label className="text-sm font-semibold text-gray-600">
+          Status
+          <select
+            className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as QuotationPayload['status'])}
+          >
+            {['Draft', 'Sent', 'Accepted', 'Rejected', 'Expired', 'Converted'].map((entry) => (
+              <option key={entry}>{entry}</option>
+            ))}
+          </select>
+        </label>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="text-sm font-semibold text-gray-600">
+            Discount type
+            <select
+              className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+              value={discountType}
+              onChange={(e) => setDiscountType(e.target.value as QuotationPayload['discountType'])}
+            >
+              <option>None</option>
+              <option>Flat</option>
+              <option>Percent</option>
+            </select>
+          </label>
+          <label className="text-sm font-semibold text-gray-600">
+            Discount value
+            <input
+              type="number"
+              className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+              value={discountValue}
+              onChange={(e) => setDiscountValue(Number(e.target.value) || 0)}
+              disabled={discountType === 'None'}
+            />
+          </label>
         </div>
 
-        <div className="space-y-4">
-          <div className="rounded-2xl border border-gray-200 bg-white p-4 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-lg font-semibold text-brandCharcoal">Quote details</p>
-              {loadingPickers && <span className="text-xs text-gray-500">Loading pickers…</span>}
-            </div>
-              <label className="text-sm font-semibold text-gray-600">
-                Quote number
-                <input
-                  className="mt-1 w-full rounded-2xl border border-gray-200 bg-gray-100 px-3 py-2"
-                  value={quoteNumber}
-                  readOnly
-                />
-              </label>
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="text-sm font-semibold text-gray-600">
-                Issue date
-                <input
-                  type="date"
-                  className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                  value={issueDate}
-                  onChange={(e) => setIssueDate(e.target.value)}
-                />
-              </label>
-              <label className="text-sm font-semibold text-gray-600">
-                Valid until
-                <input
-                  type="date"
-                  className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                  value={validUntil}
-                  onChange={(e) => setValidUntil(e.target.value)}
-                />
-              </label>
-            </div>
-            <label className="text-sm font-semibold text-gray-600">
-              Currency
-              <input
-                className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-              />
-            </label>
-            <label className="text-sm font-semibold text-gray-600">
-              Status
-              <select
-                className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                value={status}
-                onChange={(e) => setStatus(e.target.value as QuotationPayload['status'])}
-              >
-                {['Draft', 'Sent', 'Accepted', 'Rejected', 'Expired', 'Converted'].map((entry) => (
-                  <option key={entry}>{entry}</option>
-                ))}
-              </select>
-            </label>
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="text-sm font-semibold text-gray-600">
-                Discount type
-                <select
-                  className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                  value={discountType}
-                  onChange={(e) => setDiscountType(e.target.value as QuotationPayload['discountType'])}
-                >
-                  <option>None</option>
-                  <option>Flat</option>
-                  <option>Percent</option>
-                </select>
-              </label>
-              <label className="text-sm font-semibold text-gray-600">
-                Discount value
-                <input
-                  type="number"
-                  className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                  value={discountValue}
-                  onChange={(e) => setDiscountValue(Number(e.target.value) || 0)}
-                  disabled={discountType === 'None'}
-                />
-              </label>
-            </div>
-
-            <div className="rounded-xl bg-brandMuted p-3 text-sm font-semibold text-brandCharcoal">
-              <div className="flex items-center justify-between">
-                <span>Subtotal</span>
-                <span>{totals.subTotal.toFixed(2)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Tax</span>
-                <span>{totals.taxTotal.toFixed(2)}</span>
-              </div>
-              <div className="flex items-center justify-between text-lg">
-                <span>Grand total</span>
-                <span>{totals.grandTotal.toFixed(2)}</span>
-              </div>
-            </div>
-
-            <label className="text-sm font-semibold text-gray-600">
-              Notes
-              <textarea
-                className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                rows={3}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-            </label>
-            <label className="text-sm font-semibold text-gray-600">
-              Terms
-              <textarea
-                className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                rows={3}
-                value={terms}
-                onChange={(e) => setTerms(e.target.value)}
-              />
-            </label>
+        <div className="rounded-xl bg-brandMuted p-3 text-sm font-semibold text-brandCharcoal">
+          <div className="flex items-center justify-between">
+            <span>Subtotal</span>
+            <span>{totals.subTotal.toFixed(2)}</span>
           </div>
+          <div className="flex items-center justify-between">
+            <span>Tax</span>
+            <span>{totals.taxTotal.toFixed(2)}</span>
+          </div>
+          <div className="flex items-center justify-between text-lg">
+            <span>Grand total</span>
+            <span>{totals.grandTotal.toFixed(2)}</span>
+          </div>
+        </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4">
-            <div className="space-y-1 text-sm text-gray-600">
-              <p>Add at least one item and choose a client before saving.</p>
-              <p>New clients entered here stay within the quotation snapshot only.</p>
-            </div>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={onCancel}
-                  className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                  disabled={submitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => handleSubmit(e as any, 'Draft')}
-                  className="rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow"
-                  disabled={submitting}
-                >
-                  Save Draft
-                </button>
-                <button
-                  type="submit"
-                  onClick={(e) => handleSubmit(e as any, status)}
-                  className="rounded-full bg-brandPrimary px-4 py-2 text-sm font-semibold text-white shadow"
-                  disabled={submitting}
-                >
-                  Save
-                </button>
-              </div>
-            </div>
+        <label className="text-sm font-semibold text-gray-600">
+          Notes
+          <textarea
+            className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+            rows={3}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </label>
+        <label className="text-sm font-semibold text-gray-600">
+          Terms
+          <textarea
+            className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+            rows={3}
+            value={terms}
+            onChange={(e) => setTerms(e.target.value)}
+          />
+        </label>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+        <div className="space-y-1 text-sm text-gray-600">
+          <p>Add at least one item and choose a client before saving.</p>
+          <p>New clients entered here stay within the quotation snapshot only.</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+            disabled={submitting}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={(e) => handleSubmit(e as any, 'Draft')}
+            className="rounded-full bg-gray-900 px-4 py-2 text-sm font-semibold text-white shadow"
+            disabled={submitting}
+          >
+            Save Draft
+          </button>
+          <button
+            type="submit"
+            onClick={(e) => handleSubmit(e as any, status)}
+            className="rounded-full bg-brandPrimary px-4 py-2 text-sm font-semibold text-white shadow"
+            disabled={submitting}
+          >
+            Save
+          </button>
         </div>
       </div>
     </form>
