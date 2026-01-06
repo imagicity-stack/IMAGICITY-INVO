@@ -223,9 +223,13 @@ h1 {
 
 .quotation__header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+
+.quotation__header .muted {
+  margin-top: 6px;
 }
 
 .quotation__header h2 {
@@ -314,6 +318,12 @@ h1 {
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(242, 95, 41, 0.4);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.download:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .download:hover {

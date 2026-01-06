@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/fireba
 import { collection, doc, getDoc, getDocs, getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
 let downloadedFileName = "quotation.pdf";
+let quotationLoaded = false;
 
 function showStatus(message, type = "info") {
   const el = document.getElementById("status");
@@ -160,9 +161,21 @@ function renderQuotation(data) {
   document.getElementById("total").textContent = formatCurrency(totals.total, quotation.currency);
 
   downloadedFileName = `${quotation.number}.pdf`;
+  quotationLoaded = true;
+
+  const downloadBtn = document.getElementById("download-btn");
+  if (downloadBtn) {
+    downloadBtn.disabled = false;
+    downloadBtn.textContent = "Download PDF";
+  }
 }
 
 function downloadPDF() {
+  if (!quotationLoaded) {
+    showStatus("Please wait for the quotation data to finish loading before downloading.", "error");
+    return;
+  }
+
   const element = document.querySelector(".page");
   const options = {
     filename: downloadedFileName,
@@ -176,6 +189,12 @@ function downloadPDF() {
 }
 
 async function bootstrap() {
+  const downloadBtn = document.getElementById("download-btn");
+  if (downloadBtn) {
+    downloadBtn.disabled = true;
+    downloadBtn.textContent = "Preparing PDF…";
+  }
+
   try {
     showStatus("Connecting to Firebase and loading quotation…", "info");
     const config = parseFirebaseConfig();
@@ -192,9 +211,14 @@ async function bootstrap() {
   } catch (err) {
     console.error(err);
     showStatus(err.message || "Unable to load quotation data", "error");
+    if (downloadBtn) {
+      downloadBtn.textContent = "Load failed";
+    }
   }
 
-  document.getElementById("download-btn").addEventListener("click", downloadPDF);
+  if (downloadBtn) {
+    downloadBtn.addEventListener("click", downloadPDF);
+  }
 }
 
 window.addEventListener("DOMContentLoaded", bootstrap);
