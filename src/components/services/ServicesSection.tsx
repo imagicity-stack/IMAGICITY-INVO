@@ -413,7 +413,7 @@ export default function ServicesSection() {
               <button
                 type="button"
                 disabled={categorySaving}
-                onClick={handleAddCategory}
+                onClick={() => handleAddCategory()}
                 className="w-full rounded-full bg-brandPrimary px-4 py-2 text-sm font-semibold text-white shadow disabled:opacity-70"
               >
                 {categorySaving ? 'Saving...' : 'Save category'}
