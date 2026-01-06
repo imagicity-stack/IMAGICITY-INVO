@@ -225,6 +225,7 @@ export default function ImvoApp() {
   });
 
   const [signingOut, setSigningOut] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     const auth = getAuth(app);
@@ -493,6 +494,7 @@ export default function ImvoApp() {
   const openClientDetail = (client) => {
     setSelectedClient(client);
     setClientDetailOpen(true);
+    setMobileNavOpen(false);
   };
 
   const handleDeleteClient = async (client) => {
@@ -509,49 +511,173 @@ export default function ImvoApp() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f6f7fb] via-white to-[#eef2ff]">
       <div className="mx-auto max-w-[1500px] px-4 py-6">
-        <header className="sticky top-4 z-30 mb-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-gray-100 bg-white/90 px-5 py-4 shadow-lg shadow-brandPrimary/5 backdrop-blur">
-          <div className="flex flex-wrap items-center gap-4">
+        <header className="sticky top-4 z-30 mb-6 rounded-3xl border border-gray-100 bg-white/95 px-5 py-4 shadow-lg shadow-brandPrimary/5 backdrop-blur">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brandPrimary to-brandSecondary text-lg font-bold text-white shadow-lg shadow-brandPrimary/20">
-                IM
-              </span>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">Imagicity</p>
-                <p className="text-lg font-bold text-brandCharcoal">INVO CRM</p>
+              <button
+                type="button"
+                className="mr-1 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-brandPrimary/10 text-brandPrimary transition hover:bg-brandPrimary/15 lg:hidden"
+                aria-label="Toggle navigation"
+                onClick={() => setMobileNavOpen((prev) => !prev)}
+              >
+                <span className="text-xl">☰</span>
+              </button>
+              <div className="flex items-center gap-2">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brandPrimary to-brandSecondary text-lg font-bold text-white shadow-lg shadow-brandPrimary/20">
+                  IM
+                </span>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">Imagicity</p>
+                  <p className="text-lg font-bold text-brandCharcoal">INVO CRM</p>
+                  <p className="mt-1 text-[11px] font-semibold text-gray-500 lg:hidden">Admin workspace overview</p>
+                </div>
               </div>
             </div>
-            <div className="min-w-[240px] space-y-1 rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3 shadow-inner shadow-white">
-              <p className="text-xs font-semibold uppercase tracking-wide text-brandPrimary">Hello, Admin 👋</p>
-              <p className="text-sm font-bold text-brandCharcoal">Welcome back to your Imvo workspace</p>
-              <p className="text-xs text-gray-600">Track performance, billing, and learning momentum at a glance.</p>
+            <div className="flex items-center gap-3">
+              <span className="hidden items-center gap-2 rounded-full bg-brandPrimary/10 px-3 py-1 text-xs font-semibold text-brandPrimary md:inline-flex">
+                <span className="inline-flex h-2 w-2 rounded-full bg-brandAccent" aria-hidden />
+                Admin session
+              </span>
+              <button
+                type="button"
+                onClick={() => setAccountOpen(true)}
+                className="hidden items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-brandCharcoal shadow hover:-translate-y-0.5 md:flex"
+              >
+                <span className="inline-flex h-2 w-2 rounded-full bg-brandSecondary" aria-hidden />
+                Account
+              </button>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="hidden items-center gap-2 rounded-full bg-brandCharcoal px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/20 transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brandPrimary disabled:cursor-not-allowed disabled:opacity-70 md:flex"
+              >
+                <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" aria-hidden />
+                {signingOut ? 'Signing out…' : 'Sign out'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(true)}
+                className="inline-flex items-center justify-center rounded-full bg-brandPrimary px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-brandPrimary/20 transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brandPrimary lg:hidden"
+              >
+                Menu
+              </button>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden items-center gap-2 rounded-full bg-brandPrimary/10 px-3 py-1 text-xs font-semibold text-brandPrimary md:inline-flex">
-              <span className="inline-flex h-2 w-2 rounded-full bg-brandAccent" aria-hidden />
-              Admin session
-            </span>
-            <button
-              type="button"
-              onClick={() => setAccountOpen(true)}
-              className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-brandCharcoal shadow hover:-translate-y-0.5"
-            >
-              <span className="inline-flex h-2 w-2 rounded-full bg-brandSecondary" aria-hidden />
-              Account
-            </button>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              disabled={signingOut}
-              className="flex items-center gap-2 rounded-full bg-brandCharcoal px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/20 transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brandPrimary disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" aria-hidden />
-              {signingOut ? 'Signing out…' : 'Sign out'}
-            </button>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:hidden">
+            <div className="space-y-2 rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3 shadow-inner shadow-white">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brandPrimary">Hello, Admin 👋</p>
+              <p className="text-sm font-bold text-brandCharcoal">Insights, billing, and services at a glance.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 rounded-2xl border border-dashed border-brandPrimary/30 bg-white/80 px-4 py-3 text-xs font-semibold text-brandCharcoal shadow-inner">
+              <span className="flex items-center gap-2">
+                <span className="inline-flex h-2 w-2 rounded-full bg-brandAccent" aria-hidden />
+                Live session
+              </span>
+              <span className="text-right text-brandPrimary">Optimized for mobile</span>
+            </div>
           </div>
         </header>
+        <div
+          className={`fixed inset-0 z-40 transform transition duration-300 lg:hidden ${
+            mobileNavOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+          }`}
+        >
+          <button
+            type="button"
+            aria-label="Close navigation"
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setMobileNavOpen(false)}
+          />
+          <div
+            className={`absolute left-0 top-0 h-full w-11/12 max-w-sm bg-white shadow-2xl transition-transform duration-300 ${
+              mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brandPrimary to-brandSecondary text-sm font-bold text-white">
+                  IM
+                </span>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">Imagicity</p>
+                  <p className="text-sm font-bold text-brandCharcoal">INVO CRM</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(false)}
+                className="rounded-full bg-brandPrimary/10 px-3 py-1 text-xs font-semibold text-brandPrimary"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="space-y-4 px-5 py-4">
+              <div className="rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3 text-sm font-semibold text-brandCharcoal">
+                Navigate quickly across dashboards, invoices, clients, and services.
+              </div>
+              <div className="grid gap-2">
+                {navItems.map((item) => {
+                  const isActive = active === item.key;
+                  return (
+                    <button
+                      key={item.key}
+                      onClick={() => {
+                        setActive(item.key);
+                        setMobileNavOpen(false);
+                      }}
+                      className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
+                        isActive
+                          ? 'border-brandPrimary bg-gradient-to-r from-brandPrimary to-brandSecondary text-white shadow-lg shadow-brandPrimary/20'
+                          : 'border-gray-200 bg-white text-brandCharcoal shadow'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${isActive ? 'bg-white/15' : 'bg-brandPrimary/10'}`}>
+                          <Image src={item.icon} alt="" width={18} height={18} />
+                        </span>
+                        <span className="font-semibold">{item.label}</span>
+                      </div>
+                      <span className="text-xs font-semibold text-brandPrimary">Go</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex flex-col gap-2 rounded-2xl border border-dashed border-brandPrimary/30 bg-brandPrimary/5 p-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAccountOpen(true);
+                    setMobileNavOpen(false);
+                  }}
+                  className="flex items-center justify-between rounded-xl bg-white px-4 py-3 text-sm font-semibold text-brandCharcoal shadow"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="inline-flex h-2 w-2 rounded-full bg-brandSecondary" aria-hidden /> Account
+                  </span>
+                  <span className="text-brandPrimary">Edit</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                  className="flex items-center justify-between rounded-xl bg-brandCharcoal px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/20 disabled:opacity-70"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" aria-hidden />
+                    {signingOut ? 'Signing out…' : 'Sign out'}
+                  </span>
+                  <span className="text-xs uppercase tracking-wide">Safe</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
         <div className={`grid gap-6 ${gridCols}`}>
-          <aside className="lg:sticky lg:top-6">
+          <aside className="hidden lg:sticky lg:top-6 lg:block">
             <div className="card space-y-6 border border-white/80 bg-white/90 shadow-xl shadow-brandPrimary/5">
               <div className="flex items-center justify-center">
                 <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brandPrimary text-lg font-bold text-white shadow-lg shadow-brandPrimary/25">IM</span>
