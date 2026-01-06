@@ -2,6 +2,7 @@ import {
   Timestamp,
   collection,
   doc,
+  deleteDoc,
   getDoc,
   getDocs,
   query,
@@ -119,4 +120,8 @@ export const restoreClient = async (id: string): Promise<void> => {
     status: 'Active',
     updatedAt: serverTimestamp(),
   });
+};
+
+export const deleteClient = async (id: string): Promise<void> => {
+  await deleteDoc(doc(clientsCollection, id));
 };

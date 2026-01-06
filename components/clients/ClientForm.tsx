@@ -14,7 +14,7 @@ import {
   taxPreferenceOptions,
 } from '../../lib/clients/clientTypes';
 import { ClientFormData, clientFormSchema } from '../../lib/clients/clientSchema';
-import { archiveClient, createClient, restoreClient, updateClient } from '../../lib/clients/clientService';
+import { archiveClient, createClient, deleteClient, restoreClient, updateClient } from '../../lib/clients/clientService';
 import { deriveStateCode } from '../../lib/clients/stateCodes';
 
 type ClientFormMode = 'create' | 'edit';
@@ -255,6 +255,26 @@ export default function ClientForm({ initialClient, mode, onSuccess, onCancel }:
     }
   };
 
+  const handleDelete = async () => {
+    if (!initialClient) return;
+    const confirmed = window.confirm('Delete this client permanently? This action cannot be undone.');
+    if (!confirmed) return;
+
+    setSubmitting(true);
+    setFeedback(null);
+    try {
+      await deleteClient(initialClient.id);
+      setFeedback('Client deleted successfully.');
+      onSuccess?.(initialClient.id);
+      if (!onSuccess) router.push('/clients');
+    } catch (err) {
+      console.error(err);
+      setFeedback('Unable to delete client.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -280,6 +300,16 @@ export default function ClientForm({ initialClient, mode, onSuccess, onCancel }:
               className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               {initialClient.isArchived ? 'Restore Client' : 'Archive Client'}
+            </button>
+          )}
+          {mode === 'edit' && initialClient && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={submitting}
+              className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
+            >
+              Delete Client
             </button>
           )}
         </div>

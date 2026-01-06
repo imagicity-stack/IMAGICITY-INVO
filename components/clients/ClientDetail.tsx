@@ -8,6 +8,7 @@ interface Props {
   onEdit: () => void;
   onArchive: () => void;
   onRestore: () => void;
+  onDelete: () => void;
 }
 
 const infoLabel = 'text-xs uppercase tracking-wide text-gray-500';
@@ -22,7 +23,7 @@ const formatDate = (value?: Timestamp) => {
   }).format(date);
 };
 
-export default function ClientDetail({ client, onArchive, onEdit, onRestore }: Props) {
+export default function ClientDetail({ client, onArchive, onDelete, onEdit, onRestore }: Props) {
   return (
     <div className="card space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -56,6 +57,13 @@ export default function ClientDetail({ client, onArchive, onEdit, onRestore }: P
               Restore
             </button>
           )}
+          <button
+            type="button"
+            onClick={onDelete}
+            className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
+          >
+            Delete
+          </button>
         </div>
       </div>
 
