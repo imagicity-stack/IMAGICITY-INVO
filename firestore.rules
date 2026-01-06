@@ -52,6 +52,25 @@ service cloud.firestore {
       }
     }
 
+    // Invoices
+    match /invoices/{invoiceId} {
+      allow read: if signedIn();
+      allow create, update: if isAdmin();
+      allow delete: if false;
+
+      match /items/{itemId} {
+        allow read: if signedIn();
+        allow create, update: if isAdmin();
+        allow delete: if false;
+      }
+
+      match /payments/{paymentId} {
+        allow read: if signedIn();
+        allow create, update: if isAdmin();
+        allow delete: if false;
+      }
+    }
+
     // Default deny
     match /{document=**} {
       allow read, write: if false;
