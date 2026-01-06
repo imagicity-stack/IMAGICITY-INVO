@@ -1,12 +1,15 @@
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { getAuth, signOut } from 'firebase/auth';
 import { useEffect, useMemo, useState } from 'react';
 
 import ClientDetail from './clients/ClientDetail';
 import ClientForm from './clients/ClientForm';
 import ClientTable from './clients/ClientTable';
 import { archiveClient, deleteClient, fetchClients, restoreClient } from '../lib/clients/clientService';
+import { app } from '../lib/firebase';
 
 const navItems = [
   { key: 'dashboard', label: 'Dashboard', icon: '/dashboard.svg' },
@@ -22,11 +25,56 @@ const seededServices = [
   { title: 'Content + Social', price: 2400, cycle: 'monthly', description: 'Short-form video, copy, scheduling, and community.' },
 ];
 
+const forecastSeries = [62, 78, 70, 88, 95, 90, 102];
+const advancedMetrics = [
+  { label: 'Win rate', value: '68%', delta: '+6.2% vs last month' },
+  { label: 'Average payment time', value: '12.4 days', delta: '-1.1 days vs target' },
+  { label: 'Recurring retention', value: '92%', delta: '+3.4% stabilized' },
+];
+const channelBreakdown = [
+  { label: 'Services', value: 52, tone: 'primary' },
+  { label: 'Invoices', value: 32, tone: 'secondary' },
+  { label: 'Quotations', value: 16, tone: 'muted' },
+];
+
+const learningTracks = [
+  {
+    title: 'Design Branding',
+    meta: '6 modules',
+    progress: 80,
+    tone: 'from-[#e0f2fe] via-white to-[#cbdcf7]',
+  },
+  {
+    title: 'Digital Marketing',
+    meta: '8 modules',
+    progress: 45,
+    tone: 'from-[#ede9fe] via-white to-[#d8d4ff]',
+  },
+  {
+    title: 'Basic HTML & CSS',
+    meta: '12 modules',
+    progress: 95,
+    tone: 'from-[#e0f7ff] via-white to-[#c7ecff]',
+  },
+];
+
+const leaderboardEntries = [
+  { name: 'John Andrew', handle: '@johnandrew', points: 320 },
+  { name: 'Ariana Faye', handle: '@arianafaye', points: 292 },
+  { name: 'Oliver Stone', handle: '@oliverstone', points: 265 },
+];
+
+const scheduleItems = [
+  { time: '09:00 am', title: 'Begin writing Landing Page', subtitle: 'Design System Revamp' },
+  { time: '11:00 am', title: 'Draw Wireframe', subtitle: 'Homepage v3' },
+  { time: '02:00 pm', title: 'UX Presentation', subtitle: 'Sprint 12' },
+];
+
 function SectionHeader({ icon, title, actions }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="section-title">
-        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brandRed/10">
+        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brandPrimary/10">
           <Image src={icon} alt="" width={20} height={20} />
         </span>
         <span>{title}</span>
@@ -41,7 +89,7 @@ function StatCard({ title, value, delta, pill }) {
     <div className="card">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-gray-500">{title}</p>
-        {pill && <span className="badge bg-brandRed/10 text-brandRed">{pill}</span>}
+        {pill && <span className="badge bg-brandPrimary/10 text-brandPrimary">{pill}</span>}
       </div>
       <p className="mt-4 text-3xl font-bold text-brandCharcoal">{value}</p>
       {delta && <p className="mt-2 text-sm text-green-600">{delta}</p>}
@@ -52,14 +100,100 @@ function StatCard({ title, value, delta, pill }) {
 function Pill({ children, tone = 'muted' }) {
   const map = {
     muted: 'bg-gray-100 text-gray-700',
-    red: 'bg-brandRed/10 text-brandRed',
-    yellow: 'bg-brandYellow/20 text-brandCharcoal',
+    primary: 'bg-brandPrimary/10 text-brandPrimary',
+    secondary: 'bg-brandSecondary/15 text-brandCharcoal',
     green: 'bg-emerald-100 text-emerald-700',
   };
   return <span className={`badge ${map[tone]}`}>{children}</span>;
 }
 
+function LearningCard({ track }) {
+  return (
+    <div className={`relative overflow-hidden rounded-3xl border border-gray-100 bg-gradient-to-br ${track.tone} p-5 shadow-sm`}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-gray-500">{track.meta}</p>
+          <p className="text-lg font-bold text-brandCharcoal">{track.title}</p>
+        </div>
+        <span className="badge bg-white/70 text-brandCharcoal">Live</span>
+      </div>
+      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-white/70">
+        <div className="h-full rounded-full bg-brandPrimary" style={{ width: `${track.progress}%` }} />
+      </div>
+      <p className="mt-2 text-xs font-semibold text-gray-600">{track.progress}% completed</p>
+    </div>
+  );
+}
+
+function LeaderboardCard() {
+  return (
+    <div className="card space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-lg font-semibold text-brandCharcoal">Leaderboard</p>
+        <span className="badge bg-brandPrimary/10 text-brandPrimary">Weekly</span>
+      </div>
+      <div className="space-y-3">
+        {leaderboardEntries.map((entry, idx) => (
+          <div key={entry.name} className="flex items-center justify-between rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-bold text-brandCharcoal shadow">
+                {idx + 1}
+              </span>
+              <div>
+                <p className="font-semibold text-brandCharcoal">{entry.name}</p>
+                <p className="text-xs text-gray-500">{entry.handle}</p>
+              </div>
+            </div>
+            <p className="text-sm font-semibold text-brandPrimary">{entry.points} pts</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ProfileRail() {
+  return (
+    <div className="space-y-4">
+      <div className="card space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brandPrimary text-lg font-bold text-white">AI</div>
+            <div>
+              <p className="text-sm font-semibold text-gray-500">Profile</p>
+              <p className="text-lg font-bold text-brandCharcoal">Admin</p>
+            </div>
+          </div>
+          <span className="badge bg-brandPrimary/10 text-brandPrimary">Pro</span>
+        </div>
+        <div className="rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3">
+          <p className="text-xs uppercase tracking-wide text-gray-500">Current level</p>
+          <p className="text-xl font-bold text-brandCharcoal">Design Level 40</p>
+          <p className="text-sm text-gray-600">Learning content strategy & visual excellence.</p>
+        </div>
+      </div>
+
+      <div className="card space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-lg font-semibold text-brandCharcoal">Schedule</p>
+          <span className="badge bg-brandSecondary/30 text-brandCharcoal">Today</span>
+        </div>
+        <div className="space-y-3">
+          {scheduleItems.map((item) => (
+            <div key={item.title} className="rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brandPrimary">{item.time}</p>
+              <p className="font-semibold text-brandCharcoal">{item.title}</p>
+              <p className="text-sm text-gray-500">{item.subtitle}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ImvoApp() {
+  const router = useRouter();
   const [active, setActive] = useState('dashboard');
   const [clients, setClients] = useState([]);
   const [clientsLoading, setClientsLoading] = useState(false);
@@ -90,6 +224,19 @@ export default function ImvoApp() {
   });
 
   const [serviceForm, setServiceForm] = useState({ title: '', price: '', cycle: 'monthly', description: '' });
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut(getAuth(app));
+      router.push('/');
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Sign out failed', error);
+      setSigningOut(false);
+    }
+  };
 
   const handleArchiveClient = async (client) => {
     await archiveClient(client.id);
@@ -246,179 +393,319 @@ export default function ImvoApp() {
     await loadClients();
   };
 
+  const gridCols = active === 'dashboard' ? 'lg:grid-cols-[230px_1fr_320px]' : 'lg:grid-cols-[230px_1fr]';
+
   return (
-    <>
-      <main className="mx-auto flex min-h-screen max-w-[1400px] flex-col gap-6 px-4 py-8 md:flex-row md:px-8">
-        <aside className="md:w-1/4 lg:w-1/5">
-          <div className="card sticky top-6 flex flex-col gap-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#f6f7fb] via-white to-[#eef2ff]">
+      <div className="mx-auto max-w-[1500px] px-4 py-6">
+        <header className="sticky top-4 z-30 mb-6 flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-gray-100 bg-white/90 px-5 py-4 shadow-lg shadow-brandPrimary/5 backdrop-blur">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brandPrimary to-brandSecondary text-lg font-bold text-white shadow-lg shadow-brandPrimary/20">
+                IM
+              </span>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gray-500">Imagicity</p>
+                <p className="text-lg font-bold text-brandCharcoal">INVO CRM</p>
+              </div>
+            </div>
+            <div className="min-w-[240px] space-y-1 rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3 shadow-inner shadow-white">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brandPrimary">Hello, Admin 👋</p>
+              <p className="text-sm font-bold text-brandCharcoal">Welcome back to your Imvo workspace</p>
+              <p className="text-xs text-gray-600">Track performance, billing, and learning momentum at a glance.</p>
+            </div>
+          </div>
           <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brandRed text-white text-xl font-bold shadow-lg shadow-brandRed/30">IM</span>
-            <div>
-              <p className="text-xl font-bold text-brandCharcoal">IMVO</p>
-              <p className="text-sm text-gray-500">Imagicity invoicing suite</p>
-            </div>
+            <span className="hidden items-center gap-2 rounded-full bg-brandPrimary/10 px-3 py-1 text-xs font-semibold text-brandPrimary md:inline-flex">
+              <span className="inline-flex h-2 w-2 rounded-full bg-brandAccent" aria-hidden />
+              Admin session
+            </span>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="flex items-center gap-2 rounded-full bg-brandCharcoal px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/20 transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-brandPrimary disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400" aria-hidden />
+              {signingOut ? 'Signing out…' : 'Sign out'}
+            </button>
           </div>
-          <div className="grid gap-2">
-            {navItems.map((item) => {
-              const isActive = active === item.key;
-              return (
-                <button
-                  key={item.key}
-                  onClick={() => setActive(item.key)}
-                  className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brandRed/10 border ${
-                    isActive ? 'bg-brandRed text-white border-brandRed shadow-brandRed/30' : 'bg-white border-gray-200 text-brandCharcoal'
-                  }`}
-                >
-                  <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${isActive ? 'bg-white/15' : 'bg-brandRed/10'}`}>
-                    <Image src={item.icon} alt="" width={18} height={18} />
-                  </span>
-                  <span className="font-semibold">{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-          <div className="rounded-2xl border border-dashed border-brandRed/30 bg-brandRed/5 p-4 text-sm text-brandCharcoal">
-            <p className="font-semibold text-brandRed">Firebase ready</p>
-            <p className="mt-1 text-gray-700">Wire your Firestore collections to persist invoices, quotations, and services.</p>
-          </div>
-        </div>
-      </aside>
-
-      <section className="md:w-3/4 lg:w-4/5">
-        {active === 'dashboard' && (
-          <SectionWrapper>
-            <SectionHeader icon="/dashboard.svg" title="Dashboard" />
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              <StatCard title="Monthly revenue" value={`$${(totals.paid + totals.outstanding).toLocaleString()}`} delta="Up 12.4% vs last month" pill="Live" />
-              <StatCard title="Outstanding" value={`$${totals.outstanding.toLocaleString()}`} delta="2 invoices waiting" />
-              <StatCard title="Paid invoices" value={`$${totals.paid.toLocaleString()}`} delta="On-time: 92%" />
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-2">
-              <div className="card">
-                <div className="section-title mb-4">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandYellow/30 text-brandCharcoal">💹</span>
-                  <span>Pipeline snapshot</span>
-                </div>
-                <div className="space-y-4">
-                  {quotations.map((quote) => (
-                    <div key={quote.id} className="flex items-center justify-between rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3">
-                      <div>
-                        <p className="font-semibold">{quote.client}</p>
-                        <p className="text-sm text-gray-500">{quote.service}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Pill tone="yellow">{quote.status}</Pill>
-                        <p className="font-semibold text-brandCharcoal">${quote.amount.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+        </header>
+        <div className={`grid gap-6 ${gridCols}`}>
+          <aside className="lg:sticky lg:top-6">
+            <div className="card space-y-6 border border-white/80 bg-white/90 shadow-xl shadow-brandPrimary/5">
+              <div className="flex items-center justify-center">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brandPrimary text-lg font-bold text-white shadow-lg shadow-brandPrimary/25">IM</span>
               </div>
-
-              <div className="card">
-                <div className="section-title mb-4">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandRed/10 text-brandRed">⏳</span>
-                  <span>Upcoming due dates</span>
-                </div>
-                <div className="space-y-3">
-                  {invoices.map((invoice) => (
-                    <div key={invoice.id} className="flex items-center justify-between rounded-2xl border border-gray-100 px-4 py-3">
-                      <div>
-                        <p className="font-semibold">{invoice.client}</p>
-                        <p className="text-sm text-gray-500">Due {invoice.due}</p>
-                      </div>
-                      <div className="text-right">
-                        <Pill tone={invoice.status === 'Paid' ? 'green' : 'red'}>{invoice.status}</Pill>
-                        <p className="mt-1 font-semibold text-brandCharcoal">${invoice.amount.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div className="grid gap-2">
+                {navItems.map((item) => {
+                  const isActive = active === item.key;
+                  return (
+                    <button
+                      key={item.key}
+                      onClick={() => setActive(item.key)}
+                      className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-brandPrimary/10 ${
+                        isActive ? 'border-brandPrimary bg-gradient-to-r from-brandPrimary to-brandSecondary text-white shadow-brandPrimary/30' : 'border-gray-200 bg-white text-brandCharcoal'
+                      }`}
+                    >
+                      <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${isActive ? 'bg-white/15' : 'bg-brandPrimary/10'}`}>
+                        <Image src={item.icon} alt="" width={18} height={18} />
+                      </span>
+                      <span className="font-semibold">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="rounded-2xl border border-dashed border-brandPrimary/30 bg-brandPrimary/5 p-4 text-sm text-brandCharcoal">
+                <p className="font-semibold text-brandPrimary">Get Premium now!</p>
+                <p className="mt-1 text-gray-700">Subscribe to unlock deeper analytics and automated workflows.</p>
               </div>
             </div>
-          </SectionWrapper>
-        )}
+          </aside>
 
-        {active === 'invoice' && (
-          <SectionWrapper>
-            <SectionHeader icon="/invoice.svg" title="Invoices" />
-            <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
-              <form onSubmit={handleInvoiceSubmit} className="card space-y-4">
-                <div className="flex items-start justify-between">
-                  <p className="text-lg font-semibold">Generate invoice</p>
-                  <Pill tone="red">Live preview</Pill>
-                </div>
-                <div className="grid gap-3 md:grid-cols-2">
-                  <label className="text-sm font-semibold text-gray-600">
-                    Client
-                    <select
-                      className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                      disabled={!clients.length}
-                      value={invoiceForm.client}
-                      onChange={(e) => setInvoiceForm({ ...invoiceForm, client: e.target.value })}
-                    >
-                      {!clients.length && <option>No clients yet</option>}
-                      {clients.map((client) => (
-                        <option key={client.id || client.legalName}>{client.legalName}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-sm font-semibold text-gray-600">
-                    Service
-                    <select
-                      className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                      value={invoiceForm.service}
-                      onChange={(e) => setInvoiceForm({ ...invoiceForm, service: e.target.value })}
-                    >
-                      {services.map((service) => (
-                        <option key={service.title}>{service.title}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-sm font-semibold text-gray-600">
-                    Amount (USD)
-                    <input
-                      type="number"
-                      className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                      value={invoiceForm.amount}
-                      onChange={(e) => setInvoiceForm({ ...invoiceForm, amount: Number(e.target.value) })}
-                    />
-                  </label>
-                  <label className="text-sm font-semibold text-gray-600">
-                    Due date
-                    <input
-                      type="date"
-                      className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
-                      value={invoiceForm.due}
-                      onChange={(e) => setInvoiceForm({ ...invoiceForm, due: e.target.value })}
-                    />
-                  </label>
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <input
-                      type="checkbox"
-                      id="status"
-                      checked={invoiceForm.status === 'Paid'}
-                      onChange={(e) => setInvoiceForm({ ...invoiceForm, status: e.target.checked ? 'Paid' : 'Pending' })}
-                      className="h-4 w-4 rounded border-gray-300 text-brandRed focus:ring-brandRed"
-                    />
-                    <label htmlFor="status">Mark as paid</label>
+          <section className="space-y-6">
+            {active === 'dashboard' && (
+              <div className="space-y-6">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-brandPrimary/30 bg-white/90 px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-brandPrimary/10 px-3 py-1 text-xs font-semibold text-brandPrimary">
+                      <span className="inline-flex h-2 w-2 rounded-full bg-brandAccent" aria-hidden />
+                      Admin dashboard
+                    </span>
+                    <span className="rounded-full bg-brandSecondary/10 px-3 py-1 text-xs font-semibold text-brandCharcoal">Updated just now</span>
                   </div>
-                  <button
-                    type="submit"
-                    className="rounded-full bg-brandRed px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-brandRed/30 transition hover:-translate-y-0.5"
-                  >
-                    Save invoice
-                  </button>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-brandPrimary">Focus: performance & billing</span>
                 </div>
-              </form>
+
+                <div className="grid gap-4 md:grid-cols-3">
+                  {learningTracks.map((track) => (
+                    <LearningCard key={track.title} track={track} />
+                  ))}
+                </div>
+
+                <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+                  <div className="card relative overflow-hidden bg-white/90">
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(37,99,235,0.05),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(124,58,237,0.08),transparent_35%)]" aria-hidden />
+                    <div className="relative space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="section-title">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandPrimary/10 text-brandPrimary">⏱️</span>
+                          <span>Hours spent</span>
+                        </div>
+                        <span className="badge bg-brandSecondary/30 text-brandCharcoal">Weekly</span>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                          <p className="text-sm font-semibold text-gray-500">This week</p>
+                          <p className="text-3xl font-bold text-brandCharcoal">{(forecastSeries.reduce((a, b) => a + b, 0) / 10).toFixed(1)} hrs</p>
+                          <p className="text-sm text-emerald-700">+12% vs last week</p>
+                        </div>
+                        <div className="rounded-2xl border border-dashed border-brandPrimary/30 bg-white/80 px-4 py-3 text-sm font-semibold text-brandCharcoal">
+                          <p className="text-xs uppercase tracking-wide text-brandPrimary">Focus</p>
+                          <p>Branding & automation</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 flex items-end gap-2">
+                        {forecastSeries.map((point, idx) => (
+                          <div key={point} className="flex flex-1 flex-col items-center gap-2">
+                            <div className="w-full rounded-full bg-gradient-to-t from-brandPrimary to-brandSecondary" style={{ height: `${point / 1.2}%` }} />
+                            <span className="text-[10px] font-semibold text-gray-500">D{idx + 1}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="card space-y-4">
+                    <div className="section-title">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandSecondary/30 text-brandCharcoal">📈</span>
+                      <span>Performance</span>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {advancedMetrics.map((metric) => (
+                        <div key={metric.label} className="rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3">
+                          <p className="text-xs uppercase tracking-wide text-gray-500">{metric.label}</p>
+                          <p className="text-xl font-bold text-brandCharcoal">{metric.value}</p>
+                          <p className="text-sm text-emerald-700">{metric.delta}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="rounded-2xl border border-gray-100 bg-white px-4 py-3">
+                      <p className="text-sm font-semibold text-gray-600">Channel win rate</p>
+                      <div className="mt-3 space-y-3">
+                        {channelBreakdown.map((channel) => (
+                          <div key={channel.label} className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className={`badge ${channel.tone === 'primary' ? 'bg-brandPrimary/10 text-brandPrimary' : channel.tone === 'secondary' ? 'bg-brandSecondary/20 text-brandCharcoal' : 'bg-gray-100 text-gray-700'}`}>
+                                {channel.label}
+                              </span>
+                              <span className="text-sm text-gray-500">Share of wins</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-100">
+                                <div className={`h-full rounded-full ${channel.tone === 'primary' ? 'bg-brandPrimary' : channel.tone === 'secondary' ? 'bg-brandSecondary' : 'bg-gray-400'}`} style={{ width: `${channel.value}%` }} />
+                              </div>
+                              <p className="text-sm font-semibold text-brandCharcoal">{channel.value}%</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+                  <div className="card">
+                    <div className="flex items-center justify-between">
+                      <div className="section-title">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandSecondary/30 text-brandCharcoal">💎</span>
+                        <span>Your point</span>
+                      </div>
+                      <span className="badge bg-brandPrimary/10 text-brandPrimary">Live</span>
+                    </div>
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                      <div className="rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3">
+                        <p className="text-sm font-semibold text-gray-500">Points</p>
+                        <p className="text-3xl font-bold text-brandCharcoal">{(totals.paid + totals.outstanding).toLocaleString()}</p>
+                        <p className="text-sm text-emerald-700">Across invoices & services</p>
+                      </div>
+                      <div className="rounded-2xl border border-gray-100 bg-white px-4 py-3">
+                        <p className="text-sm font-semibold text-gray-500">On-time payments</p>
+                        <p className="text-3xl font-bold text-brandCharcoal">{Math.round((totals.paid / (totals.paid + totals.outstanding || 1)) * 100)}%</p>
+                        <p className="text-sm text-gray-600"> {invoices.length} invoices tracked</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <LeaderboardCard />
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div className="card">
+                    <div className="section-title mb-4">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandSecondary/30 text-brandCharcoal">💹</span>
+                      <span>Pipeline snapshot</span>
+                    </div>
+                    <div className="space-y-4">
+                      {quotations.map((quote) => (
+                        <div key={quote.id} className="flex items-center justify-between rounded-2xl border border-gray-100 bg-brandMuted px-4 py-3">
+                          <div>
+                            <p className="font-semibold">{quote.client}</p>
+                            <p className="text-sm text-gray-500">{quote.service}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Pill tone="secondary">{quote.status}</Pill>
+                            <p className="font-semibold text-brandCharcoal">${quote.amount.toLocaleString()}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="card">
+                    <div className="section-title mb-4">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brandPrimary/10 text-brandPrimary">⏳</span>
+                      <span>Upcoming due dates</span>
+                    </div>
+                    <div className="space-y-3">
+                      {invoices.map((invoice) => (
+                        <div key={invoice.id} className="flex items-center justify-between rounded-2xl border border-gray-100 px-4 py-3">
+                          <div>
+                            <p className="font-semibold">{invoice.client}</p>
+                            <p className="text-sm text-gray-500">Due {invoice.due}</p>
+                          </div>
+                          <div className="text-right">
+                            <Pill tone={invoice.status === 'Paid' ? 'green' : 'red'}>{invoice.status}</Pill>
+                            <p className="mt-1 font-semibold text-brandCharcoal">${invoice.amount.toLocaleString()}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {active === 'invoice' && (
+              <SectionWrapper>
+          <SectionHeader icon="/invoice.svg" title="Invoices" />
+          <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+            <form onSubmit={handleInvoiceSubmit} className="card space-y-4">
+              <div className="flex items-start justify-between">
+                <p className="text-lg font-semibold">Generate invoice</p>
+                <Pill tone="primary">Live preview</Pill>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="text-sm font-semibold text-gray-600">
+                  Client
+                  <select
+                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+                    disabled={!clients.length}
+                    value={invoiceForm.client}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, client: e.target.value })}
+                  >
+                    {!clients.length && <option>No clients yet</option>}
+                    {clients.map((client) => (
+                      <option key={client.id || client.legalName}>{client.legalName}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm font-semibold text-gray-600">
+                  Service
+                  <select
+                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+                    value={invoiceForm.service}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, service: e.target.value })}
+                  >
+                    {services.map((service) => (
+                      <option key={service.title}>{service.title}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="text-sm font-semibold text-gray-600">
+                  Amount (USD)
+                  <input
+                    type="number"
+                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+                    value={invoiceForm.amount}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, amount: Number(e.target.value) })}
+                  />
+                </label>
+                <label className="text-sm font-semibold text-gray-600">
+                  Due date
+                  <input
+                    type="date"
+                    className="mt-1 w-full rounded-2xl border border-gray-200 bg-white px-3 py-2"
+                    value={invoiceForm.due}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, due: e.target.value })}
+                  />
+                </label>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    id="status"
+                    checked={invoiceForm.status === 'Paid'}
+                    onChange={(e) => setInvoiceForm({ ...invoiceForm, status: e.target.checked ? 'Paid' : 'Pending' })}
+                    className="h-4 w-4 rounded border-gray-300 text-brandPrimary focus:ring-brandPrimary"
+                  />
+                  <label htmlFor="status">Mark as paid</label>
+                </div>
+                <button
+                  type="submit"
+                  className="rounded-full bg-brandPrimary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/30 transition hover:-translate-y-0.5"
+                >
+                  Save invoice
+                </button>
+              </div>
+            </form>
 
               <div className="card space-y-4 bg-gradient-to-br from-brandMuted to-white">
                 <div className="flex items-center justify-between">
                   <p className="text-lg font-semibold">Recent invoices</p>
-                  <Pill tone="yellow">Auto-sync soon</Pill>
+                  <Pill tone="secondary">Auto-sync soon</Pill>
                 </div>
                 <div className="space-y-3">
                   {invoices.map((invoice) => (
@@ -439,14 +726,14 @@ export default function ImvoApp() {
           </SectionWrapper>
         )}
 
-        {active === 'quotation' && (
-          <SectionWrapper>
+            {active === 'quotation' && (
+              <SectionWrapper>
             <SectionHeader icon="/quotation.svg" title="Quotations" />
             <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
               <form onSubmit={handleQuoteSubmit} className="card space-y-4">
                 <div className="flex items-start justify-between">
                   <p className="text-lg font-semibold">Send quotation</p>
-                  <Pill tone="yellow">Shareable</Pill>
+                  <Pill tone="secondary">Shareable</Pill>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
                   <label className="text-sm font-semibold text-gray-600">
@@ -499,7 +786,7 @@ export default function ImvoApp() {
                 </div>
                 <button
                   type="submit"
-                  className="rounded-full bg-brandYellow px-5 py-2 text-sm font-semibold text-brandCharcoal shadow-lg shadow-brandYellow/30 transition hover:-translate-y-0.5"
+                  className="rounded-full bg-brandSecondary px-5 py-2 text-sm font-semibold text-brandCharcoal shadow-lg shadow-brandSecondary/30 transition hover:-translate-y-0.5"
                 >
                   Save quotation
                 </button>
@@ -518,7 +805,7 @@ export default function ImvoApp() {
                         <p className="text-sm text-gray-500">{quote.client}</p>
                       </div>
                       <div className="text-right">
-                        <Pill tone="yellow">{quote.status}</Pill>
+                        <Pill tone="secondary">{quote.status}</Pill>
                         <p className="mt-1 font-semibold text-brandCharcoal">${quote.amount.toLocaleString()}</p>
                       </div>
                     </div>
@@ -529,8 +816,8 @@ export default function ImvoApp() {
           </SectionWrapper>
         )}
 
-        {active === 'clients' && (
-          <SectionWrapper>
+            {active === 'clients' && (
+              <SectionWrapper>
             <SectionHeader
               icon="/clients.svg"
               title="Clients"
@@ -552,7 +839,7 @@ export default function ImvoApp() {
                   <button
                     type="button"
                     onClick={openCreateClient}
-                    className="rounded-xl bg-brandRed px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brandRed/20 transition hover:-translate-y-0.5 hover:bg-red-700"
+                    className="rounded-xl bg-brandPrimary px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/20 transition hover:-translate-y-0.5 hover:bg-red-700"
                   >
                     Add Client
                   </button>
@@ -572,11 +859,11 @@ export default function ImvoApp() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search by legal name, brand, email, or phone"
-                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 pr-12 text-sm focus:border-brandRed focus:ring-2 focus:ring-brandRed/20"
+                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 pr-12 text-sm focus:border-brandPrimary focus:ring-2 focus:ring-brandPrimary/20"
                   />
                   <button
                     type="submit"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-brandRed px-3 py-1 text-xs font-semibold text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-brandPrimary px-3 py-1 text-xs font-semibold text-white"
                   >
                     Go
                   </button>
@@ -603,7 +890,7 @@ export default function ImvoApp() {
                     type="checkbox"
                     checked={includeArchived}
                     onChange={(e) => setIncludeArchived(e.target.checked)}
-                    className="h-5 w-5 rounded border-gray-300 text-brandRed focus:ring-brandRed"
+                    className="h-5 w-5 rounded border-gray-300 text-brandPrimary focus:ring-brandPrimary"
                   />
                 </label>
               </div>
@@ -627,21 +914,21 @@ export default function ImvoApp() {
           </SectionWrapper>
         )}
 
-        {active === 'services' && (
-          <SectionWrapper>
+            {active === 'services' && (
+              <SectionWrapper>
             <SectionHeader icon="/services.svg" title="Services" />
             <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
               <div className="card space-y-4">
                 <div className="flex items-center justify-between">
                   <p className="text-lg font-semibold">Service catalog</p>
-                  <Pill tone="yellow">Visible to sales</Pill>
+                  <Pill tone="secondary">Visible to sales</Pill>
                 </div>
                 <div className="space-y-3">
                   {services.map((service, idx) => (
                     <div key={`${service.title}-${idx}`} className="flex flex-col gap-2 rounded-2xl border border-gray-100 bg-brandMuted p-4">
                       <div className="flex items-center justify-between">
                         <p className="font-semibold text-brandCharcoal">{service.title}</p>
-                        <Pill tone="red">{service.cycle}</Pill>
+                        <Pill tone="primary">{service.cycle}</Pill>
                       </div>
                       <p className="text-sm text-gray-500">{service.description || 'No description added yet.'}</p>
                       <p className="text-lg font-bold text-brandCharcoal">${service.price.toLocaleString()}</p>
@@ -653,7 +940,7 @@ export default function ImvoApp() {
               <form onSubmit={handleServiceSubmit} className="card space-y-4">
                 <div className="flex items-start justify-between">
                   <p className="text-lg font-semibold">Create service</p>
-                  <Pill tone="red">New</Pill>
+                  <Pill tone="primary">New</Pill>
                 </div>
                 <label className="text-sm font-semibold text-gray-600">
                   Title
@@ -698,7 +985,7 @@ export default function ImvoApp() {
                 </label>
                 <button
                   type="submit"
-                  className="rounded-full bg-brandRed px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-brandRed/30 transition hover:-translate-y-0.5"
+                  className="rounded-full bg-brandPrimary px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-brandPrimary/30 transition hover:-translate-y-0.5"
                 >
                   Save service
                 </button>
@@ -706,8 +993,15 @@ export default function ImvoApp() {
             </div>
           </SectionWrapper>
         )}
-      </section>
-      </main>
+          </section>
+
+          {active === 'dashboard' && (
+            <div className="hidden lg:block">
+              <ProfileRail />
+            </div>
+          )}
+        </div>
+      </div>
 
       {clientFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -759,6 +1053,6 @@ export default function ImvoApp() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
