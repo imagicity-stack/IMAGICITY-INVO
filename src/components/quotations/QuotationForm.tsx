@@ -202,22 +202,34 @@ export default function QuotationForm({ initialData, onSubmit, onCancel, submitt
   }, [clientMode, selectedClient]);
 
   return (
-    <form onSubmit={(e) => handleSubmit(e)} className="mx-auto max-w-2xl space-y-6">
+    <form onSubmit={(e) => handleSubmit(e)} className="mx-auto flex max-w-3xl flex-col gap-6">
       {formError && <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{formError}</p>}
 
-      <QuoteClientSelector
-        mode={clientMode}
-        setMode={setClientMode}
-        existingClients={clients}
-        selectedClientId={clientId}
-        onSelectClient={(client) => setClientId(client?.id || null)}
-        newClient={clientSnapshot}
-        onChangeNewClient={handleNewClientChange}
-      />
+      <div className="space-y-4 rounded-3xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <p className="text-lg font-semibold text-brandCharcoal">Client details</p>
+          <span className="text-xs text-gray-500">Required to send the quote</span>
+        </div>
+        <QuoteClientSelector
+          mode={clientMode}
+          setMode={setClientMode}
+          existingClients={clients}
+          selectedClientId={clientId}
+          onSelectClient={(client) => setClientId(client?.id || null)}
+          newClient={clientSnapshot}
+          onChangeNewClient={handleNewClientChange}
+        />
+      </div>
 
-      <QuotationItemsEditor services={services} items={items} onChangeItems={setItems} />
+      <div className="space-y-4 rounded-3xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <p className="text-lg font-semibold text-brandCharcoal">Items & services</p>
+          <span className="text-xs text-gray-500">Add items to calculate totals</span>
+        </div>
+        <QuotationItemsEditor services={services} items={items} onChangeItems={setItems} />
+      </div>
 
-      <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4">
+      <div className="space-y-4 rounded-3xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-lg font-semibold text-brandCharcoal">Quote details</p>
           {loadingPickers && <span className="text-xs text-gray-500">Loading pickers…</span>}
@@ -309,7 +321,13 @@ export default function QuotationForm({ initialData, onSubmit, onCancel, submitt
             <span>{totals.grandTotal.toFixed(2)}</span>
           </div>
         </div>
+      </div>
 
+      <div className="space-y-4 rounded-3xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-lg font-semibold text-brandCharcoal">Notes & terms</p>
+          <span className="text-xs text-gray-500">Visible on the final quotation</span>
+        </div>
         <label className="text-sm font-semibold text-gray-600">
           Notes
           <textarea
@@ -330,7 +348,7 @@ export default function QuotationForm({ initialData, onSubmit, onCancel, submitt
         </label>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+      <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm backdrop-blur">
         <div className="space-y-1 text-sm text-gray-600">
           <p>Add at least one item and choose a client before saving.</p>
           <p>New clients entered here stay within the quotation snapshot only.</p>
